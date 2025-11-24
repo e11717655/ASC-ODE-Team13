@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css?v=6644e6bb" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
@@ -445,22 +445,21 @@ y_{i+1} = y_{i} + \tau f(y_{i}) \quad \text{for } 0 \leq i &lt; n
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Here the base class is updated by modifying the <code class="docutils literal notranslate"><span class="pre">doStep</span></code> function. It now takes <code class="docutils literal notranslate"><span class="pre">tau</span></code> and <code class="docutils literal notranslate"><span class="pre">m_vectf</span></code> as inputs and then updating the state vector by adding them.</p>
+<p>Here the base class is updated by modifying the <code class="docutils literal notranslate"><span class="pre">doStep</span></code> function. It now takes <code class="docutils literal notranslate"><span class="pre">tau</span></code> and <code class="docutils literal notranslate"><span class="pre">m_vectf</span></code> as inputs and then updates the state vector by adding them.</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="implicit-euler-method">
 <h1>Implicit Euler Method<a class="headerlink" href="#implicit-euler-method" title="Link to this heading">#</a></h1>
-<p>Next we tested the the Implicit euler Method. This method</p>
 <p>Next up, we had to try out the Implicit Euler Method. Compared to the explicit Euler method, the implicit Euler Method is more computationally expensive, due to it having to solve a potentially nonlinear equation for <span class="math notranslate nohighlight">\(y_i+1\)</span>. This is done using a built in Newton Solver. The method is also first-order accurate, with the error decreasing linearly with step size <span class="math notranslate nohighlight">\(\tau\)</span>. However, this method is both A-stable and L-stable. It has a dampening effect built in which causes the oscillations to decay over time, despite not having any friction defined in the system.</p>
 <p>The Method is defined by</p>
-<div class="amsmath math notranslate nohighlight">
-\[\begin{eqnarray*}
+<div class="math notranslate nohighlight">
+\[
 \frac{y_{i+1} - y_i}{t_{i+1} - t_i} = f(t_{i+1}, y_{i+1})
-\end{eqnarray*}\]</div>
+\]</div>
 <p>or it can be rewritten as</p>
-<div class="amsmath math notranslate nohighlight">
-\[\begin{eqnarray*}
+<div class="math notranslate nohighlight">
+\[
 y_{i+1} = y_i + \tau\, f(t_{i+1}, y_{i+1}), \qquad 0 \le i &lt; n
-\end{eqnarray*}\]</div>
+\]</div>
 <p>The code was already provided. The implementation utilized was</p>
 <div class="math notranslate nohighlight">
 \[
@@ -493,13 +492,13 @@ y - y_{old} - τf(y) = 0
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="improved-euler-method">
 <h1>Improved Euler Method<a class="headerlink" href="#improved-euler-method" title="Link to this heading">#</a></h1>
-<p>This method involved modifying the the <code class="docutils literal notranslate"><span class="pre">ExplicitEuler</span></code> time-stepping method by replacing the time steps with</p>
+<p>This method involved modifying the <code class="docutils literal notranslate"><span class="pre">ExplicitEuler</span></code> time-stepping method by replacing the time steps with</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \tilde{y} = y _n + \frac{τ}{2}f(y_n) \\
 y_{n+1} = y_{n} + τf(\tilde{y})
 \end{split}\]</div>
-<p>This method is also explicit, however it has a second-order <span class="math notranslate nohighlight">\(O(τ^{2}))\)</span> accurate, causing the error to decrease in proportion to the square of the timestep. It is still not stable, and also does not need a <code class="docutils literal notranslate"><span class="pre">NewtonSolver</span></code> as it only requires two function evaluations.</p>
+<p>This method is also explicit, however it is second-order <span class="math notranslate nohighlight">\(O(τ^{2}))\)</span> accurate, causing the error to decrease in proportion to the square of the timestep. It is still not stable, and also does not need a <code class="docutils literal notranslate"><span class="pre">NewtonSolver</span></code> as it only requires two function evaluations.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ImprovedEuler</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TimeStepper</span><span class="p">{</span>
 <span class="w">    </span><span class="n">Vector</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">m_vecf</span><span class="p">;</span>
 <span class="w">    </span><span class="n">Vector</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">halfway</span><span class="p">;</span>
@@ -526,7 +525,7 @@ y_{n+1} = y_{n} + τf(\tilde{y})
 \[
 y_{i+1} = y_i + \frac{τ}{2}(f(t_i, y_i) + f(t_{i+1}, y_{i+1}) \qquad 0 \le i &lt; n
 \]</div>
-<p>This method is a one-step method. It utilizes the the trapezoidal integration rule for the formulation of the steps and has second-order accuracy. It is A-stable, and unlike the implicit Euler Method is energy conserving, meaning that the oscillations will continue without decay or explostion (Explicit Euler).</p>
+<p>This method is a one-step method. It utilizes the trapezoidal integration rule for the formulation of the steps and has second-order accuracy. It is A-stable, and unlike the implicit Euler Method it is energy conserving, meaning that the oscillations will continue without decay or explostion (Explicit Euler).</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CrankNicolson</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TimeStepper</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">NonlinearFunction</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_equ</span><span class="p">;</span>
