@@ -92,25 +92,23 @@ public:
 };
 ```
 
-Here the base class is updated by modifying the `doStep` function. It now takes `tau` and `m_vectf` as inputs and then updating the state vector by adding them.
+Here the base class is updated by modifying the `doStep` function. It now takes `tau` and `m_vectf` as inputs and then updates the state vector by adding them.
 
 # Implicit Euler Method
-
-Next we tested the the Implicit euler Method. This method
 
 Next up, we had to try out the Implicit Euler Method. Compared to the explicit Euler method, the implicit Euler Method is more computationally expensive, due to it having to solve a potentially nonlinear equation for $y_i+1$. This is done using a built in Newton Solver. The method is also first-order accurate, with the error decreasing linearly with step size $\tau$. However, this method is both A-stable and L-stable. It has a dampening effect built in which causes the oscillations to decay over time, despite not having any friction defined in the system.
 
 
 The Method is defined by
-\begin{eqnarray*}
+$$
 \frac{y_{i+1} - y_i}{t_{i+1} - t_i} = f(t_{i+1}, y_{i+1})
-\end{eqnarray*}
+$$
 
 or it can be rewritten as
 
-\begin{eqnarray*}
+$$
 y_{i+1} = y_i + \tau\, f(t_{i+1}, y_{i+1}), \qquad 0 \le i < n
-\end{eqnarray*}
+$$
 
 The code was already provided. The implementation utilized was
 
@@ -145,14 +143,14 @@ class ImplicitEuler : public TimeStepper
 ```
 # Improved Euler Method
 
-This method involved modifying the the `ExplicitEuler` time-stepping method by replacing the time steps with
+This method involved modifying the `ExplicitEuler` time-stepping method by replacing the time steps with
 
 $$
 \tilde{y} = y _n + \frac{τ}{2}f(y_n) \\
 y_{n+1} = y_{n} + τf(\tilde{y})
 $$
 
-This method is also explicit, however it has a second-order $O(τ^{2}))$ accurate, causing the error to decrease in proportion to the square of the timestep. It is still not stable, and also does not need a `NewtonSolver` as it only requires two function evaluations.
+This method is also explicit, however it is second-order $O(τ^{2}))$ accurate, causing the error to decrease in proportion to the square of the timestep. It is still not stable, and also does not need a `NewtonSolver` as it only requires two function evaluations.
 
 ```cpp
 class ImprovedEuler : public TimeStepper{
@@ -181,7 +179,7 @@ $$
 y_{i+1} = y_i + \frac{τ}{2}(f(t_i, y_i) + f(t_{i+1}, y_{i+1}) \qquad 0 \le i < n
 $$
 
-This method is a one-step method. It utilizes the the trapezoidal integration rule for the formulation of the steps and has second-order accuracy. It is A-stable, and unlike the implicit Euler Method is energy conserving, meaning that the oscillations will continue without decay or explostion (Explicit Euler).
+This method is a one-step method. It utilizes the trapezoidal integration rule for the formulation of the steps and has second-order accuracy. It is A-stable, and unlike the implicit Euler Method it is energy conserving, meaning that the oscillations will continue without decay or explostion (Explicit Euler).
 
 ```cpp
 class CrankNicolson : public TimeStepper
