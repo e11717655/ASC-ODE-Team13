@@ -95,11 +95,11 @@ public:
 Here the base class is updated by modifying the `doStep` function. It now takes `tau` and `m_vectf` as inputs and then updates the state vector by adding them.
 
 # Implicit Euler Method
-
 Next up, we had to try out the Implicit Euler Method. Compared to the explicit Euler method, the implicit Euler Method is more computationally expensive, due to it having to solve a potentially nonlinear equation for $y_i+1$. This is done using a built in Newton Solver. The method is also first-order accurate, with the error decreasing linearly with step size $\tau$. However, this method is both A-stable and L-stable. It has a dampening effect built in which causes the oscillations to decay over time, despite not having any friction defined in the system.
 
 
 The Method is defined by
+
 $$
 \frac{y_{i+1} - y_i}{t_{i+1} - t_i} = f(t_{i+1}, y_{i+1})
 $$
