@@ -105,6 +105,42 @@ namespace ASC_ode
        return result;
    }
 
+   template <size_t N, typename T = double>
+   AutoDiff<N, T> cos(const AutoDiff<N, T> &a)
+   {
+       AutoDiff<N, T> result(cos(a.value()));
+       for (size_t i = 0; i < N; i++)
+           result.deriv()[i] = -sin(a.value()) * a.deriv()[i];
+       return result;
+   }
+
+  template <size_t N, typename T = double>
+  AutoDiff<N, T> tan(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(tan(a.value()));
+    T sec2 = 1 / (cos(a.value()) * cos(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = sec2 * a.deriv()[i];
+    return result;
+}
+
+template <size_t N, typename T = double>
+AutoDiff<N, T> log(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(log(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = (1 / a.value()) * a.deriv()[i];
+    return result;
+}
+
+template <size_t N, typename T = double>
+AutoDiff<N, T> exp(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(exp(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = result.value() * a.deriv()[i];
+    return result;
+}
 
 } // namespace ASC_ode
 
