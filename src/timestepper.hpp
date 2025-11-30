@@ -77,7 +77,7 @@ namespace ASC_ode
     std::shared_ptr<NonlinearFunction> m_equ; 
     std::shared_ptr<Parameter> m_tau; 
     std::shared_ptr<ConstantFunction> m_yold; 
-    std::shared_ptr<ConstantFunction> m_f_old;
+    std::shared_ptr<ConstantFunction> m_fold;
 
   public:
     CrankNicolson(std::shared_ptr<NonlinearFunction> rhs) 
