@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1 &#8212; ASC-ODE</title>
+    <title>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises &#8212; ASC-ODE</title>
   
   
   
@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css?v=6644e6bb" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
@@ -177,7 +177,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1 current active">
                 <a class="reference internal" href="#">
-                    NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1
+                    NSSC1 Numerical Methods for Ordinary Differential Equations Exercises
                 </a>
             </li>
         </ul>
@@ -333,7 +333,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1</h1>
+    <h1>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -343,12 +343,72 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-euler-method">Explicit Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-method">Implicit Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-euler-method">Improved Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#crank-nicolson-method">Crank-Nicolson Method</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretation-of-plots">Interpretation of Plots</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-2">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 2</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-report-electric-network-simulation">Exercise Report: Electric Network Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-model">1. Mathematical Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-autonomous-form">2. Transformation to Autonomous Form</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian-for-implicit-methods">3. Jacobian for Implicit Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">4. Setup</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-of-simulation-results">Analysis of Simulation Results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-r-100-c-10-6">Part 1: (<span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-2-system-r-1-c-1">Part 2: System (<span class="math notranslate nohighlight">\(R=1, C=1\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-of-methods">Comparison of Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-comparison">Summary Comparison</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code">Code</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-18-4">Exercise 18.4</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subtraction">Subtraction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#division">Division</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-autodiff-functions">Additional AutoDiff Functions</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#square">Square</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#square-root">Square Root</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cosine">Cosine</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tangent">Tangent</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logarithm">Logarithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exponential">Exponential</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-polynomials">Legendre Polynomials</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-of-the-autodiff-class-for-the-pendulum">Testing of the AutoDiff Class for the Pendulum</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">1. Mathematical Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">2. Transformation to Autonomous Form</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-differentiation">3. Automatic Differentiation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">4. Testing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">5. Code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#runge-kutta-methods">Runge Kutta Methods</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-19-4">Exercise 19.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-of-implicit-runge-kutta-methods">Testing of Implicit Runge-Kutta Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#graphs">Graphs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-explicit-runge-kutta-method">Implementation of Explicit Runge-Kutta Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Graphs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -363,8 +423,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-1">
-<h1>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1<a class="headerlink" href="#nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="nssc1-numerical-methods-for-ordinary-differential-equations-exercises">
+<h1>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises<a class="headerlink" href="#nssc1-numerical-methods-for-ordinary-differential-equations-exercises" title="Link to this heading">#</a></h1>
 <p>For this exercise, we compared several different time-stepping methods for a mass attached to a spring, this is described by the ODE:</p>
 <div class="math notranslate nohighlight">
 \[m y''(t) = -k y(t)\]</div>
@@ -616,6 +676,605 @@ The Crank-Nicholson Method is energy preserving, therefore the oscillations will
 <p>For τ = 100000, the numerical time evolution is smooth and closely matches the expected sinusoidal behavior.  This demonstrates the expected convergence behavior of the integrators: as τ decreases, the numerical error shrinks at the rate predicted by the theoretical order of the method.</p>
 </section>
 </section>
+<section class="tex2jax_ignore mathjax_ignore" id="nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-2">
+<h1>NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 2<a class="headerlink" href="#nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-2" title="Link to this heading">#</a></h1>
+<a class="reference internal image-reference" href="_images/image.png"><img alt="_images/image.png" src="_images/image.png" style="width: 350px;" />
+</a>
+<section id="exercise-report-electric-network-simulation">
+<h2>Exercise Report: Electric Network Simulation<a class="headerlink" href="#exercise-report-electric-network-simulation" title="Link to this heading">#</a></h2>
+<section id="mathematical-model">
+<h3>1. Mathematical Model<a class="headerlink" href="#mathematical-model" title="Link to this heading">#</a></h3>
+<p>We model a simple RC circuit consisting of a resistor <span class="math notranslate nohighlight">\(R\)</span>, a capacitor <span class="math notranslate nohighlight">\(C\)</span>, and a time-dependent voltage source <span class="math notranslate nohighlight">\(U_0(t) = \cos(100 \pi t)\)</span>.</p>
+<p>Using Ohm’s law (<span class="math notranslate nohighlight">\(U_R = R I\)</span>) and the capacitor equation (<span class="math notranslate nohighlight">\(I = C \dot{U}_C\)</span>), we apply Kirchhoff’s voltage law, which states that voltages around a loop sum to zero (<span class="math notranslate nohighlight">\(U_0 = U_R + U_C\)</span>). This yields the linear Ordinary Differential Equation (ODE):</p>
+<div class="math notranslate nohighlight">
+\[U_C(t) + RC \frac{dU_C}{dt}(t) = U_0(t)\]</div>
+<p>Rearranging for the derivative, we obtain the standard non-autonomous form <span class="math notranslate nohighlight">\(\dot{y} = f(t, y)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\frac{dU_C}{dt} = \frac{U_0(t) - U_C(t)}{RC} = \frac{\cos(100 \pi t) - U_C}{RC}\]</div>
+</section>
+<section id="transformation-to-autonomous-form">
+<h3>2. Transformation to Autonomous Form<a class="headerlink" href="#transformation-to-autonomous-form" title="Link to this heading">#</a></h3>
+<p>To utilize numerical solvers designed for autonomous systems (<span class="math notranslate nohighlight">\(\dot{\mathbf{y}} = F(\mathbf{y})\)</span>), we must eliminate the explicit time dependence. We achieve this by extending the state space to treat time as a dependent variable.</p>
+<p>We define a new state vector <span class="math notranslate nohighlight">\(\mathbf{y} \in \mathbb{R}^2\)</span>:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(y_1 = U_C\)</span> (Capacitor Voltage)</p></li>
+<li><p><span class="math notranslate nohighlight">\(y_2 = t\)</span> (Time)</p></li>
+</ul>
+<p>The derivatives are formulated as follows:</p>
+<ul class="simple">
+<li><p><strong>Voltage:</strong> <span class="math notranslate nohighlight">\(\dot{y}_1 = \frac{U_0(y_2) - y_1}{RC}\)</span></p></li>
+<li><p><strong>Time:</strong> <span class="math notranslate nohighlight">\(\dot{y}_2 = \frac{dt}{dt} = 1\)</span></p></li>
+</ul>
+<p>This results in the following autonomous system:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\dot{\mathbf{y}} = \begin{pmatrix} \frac{\cos(100 \pi y_2) - y_1}{RC} \\ 1 \end{pmatrix}\end{split}\]</div>
+</section>
+<section id="jacobian-for-implicit-methods">
+<h3>3. Jacobian for Implicit Methods<a class="headerlink" href="#jacobian-for-implicit-methods" title="Link to this heading">#</a></h3>
+<p>For the implementation of implicit solvers (Implicit Euler, Crank-Nicolson), the Jacobian matrix <span class="math notranslate nohighlight">\(J = \frac{\partial F}{\partial \mathbf{y}}\)</span> is required. Differentiating the system vector with respect to <span class="math notranslate nohighlight">\(y_1\)</span> and <span class="math notranslate nohighlight">\(y_2\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J = \begin{pmatrix} 
+\frac{\partial \dot{y}_1}{\partial y_1} &amp; \frac{\partial \dot{y}_1}{\partial y_2} \\
+\frac{\partial \dot{y}_2}{\partial y_1} &amp; \frac{\partial \dot{y}_2}{\partial y_2}
+\end{pmatrix} = 
+\begin{pmatrix} 
+-\frac{1}{RC} &amp; -\frac{100 \pi \sin(100 \pi y_2)}{RC} \\
+0 &amp; 0
+\end{pmatrix}\end{split}\]</div>
+<p>The simulation uses this system with initial conditions <span class="math notranslate nohighlight">\(\mathbf{y}(0) = [0, 0]^T\)</span>.</p>
+</section>
+<section id="setup">
+<h3>4. Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h3>
+<p>When running the code 3 different stepping sizes have been used. <span class="math notranslate nohighlight">\(N = \{100, 1000, 10000\}\)</span>. And the two different model parameters <span class="math notranslate nohighlight">\(R=1, C=1\)</span> and <span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span>. As a total time 0.1 seconds were choosen. The results displayed in graphs can be found below. For each step size the resulting Capacity Voltage has been plotted for the 3 numerical methods: The explicit Euler, the implicit Euler and the Crank-Nicolson. The input voltage has been scaled to the the size of the capacity voltage, so that the phase shift can be nicely seen.</p>
+<p><strong>Simulation Results</strong></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_100_1.png"><img alt="_images/circuit_plot_100_1.png" src="_images/circuit_plot_100_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 100 time steps and <span class="math notranslate nohighlight">\(R=1, C=1\)</span></em></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_1000_1.png"><img alt="_images/circuit_plot_1000_1.png" src="_images/circuit_plot_1000_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 1000 time steps and <span class="math notranslate nohighlight">\(R=1, C=1\)</span></em></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_10000_1.png"><img alt="_images/circuit_plot_10000_1.png" src="_images/circuit_plot_10000_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 10000 time steps and <span class="math notranslate nohighlight">\(R=1, C=1\)</span></em></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_100_1.png"><img alt="_images/circuit_plot_100_1.png" src="_images/circuit_plot_100_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 100 time steps and <span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span></em></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_1000_1.png"><img alt="_images/circuit_plot_1000_1.png" src="_images/circuit_plot_1000_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 1000 time steps and <span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span></em></p>
+<a class="reference internal image-reference" href="_images/circuit_plot_10000_1.png"><img alt="_images/circuit_plot_10000_1.png" src="_images/circuit_plot_10000_1.png" style="width: 350px;" />
+</a>
+<p><em>Plot for 10000 time steps and <span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span></em></p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="analysis-of-simulation-results">
+<h2>Analysis of Simulation Results<a class="headerlink" href="#analysis-of-simulation-results" title="Link to this heading">#</a></h2>
+<section id="part-1-r-100-c-10-6">
+<h3>Part 1: (<span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span>)<a class="headerlink" href="#part-1-r-100-c-10-6" title="Link to this heading">#</a></h3>
+<p><strong>1. Stiffness &amp; Stability Limits</strong></p>
+<p>The system is stiff, characterized by a fast time constant <span class="math notranslate nohighlight">\(\tau = RC = 10^{-4}s\)</span> and a large negative eigenvalue <span class="math notranslate nohighlight">\(\lambda = -10000\)</span>.</p>
+<ul class="simple">
+<li><p><strong>Explicit Euler Stability Condition:</strong> <span class="math notranslate nohighlight">\(|1 + \lambda \Delta t| \le 1\)</span>.
+For this system, stability requires <span class="math notranslate nohighlight">\(\Delta t \le 2 \cdot 10^{-4}s\)</span>.</p></li>
+<li><p><strong>Implicit Method Stability:</strong> Implicit Euler and Crank-Nicolson are A-stable, meaning they remain stable for any step size <span class="math notranslate nohighlight">\(\Delta t\)</span>, regardless of <span class="math notranslate nohighlight">\(\tau\)</span>.</p></li>
+</ul>
+<p><strong>2. Method Behavior</strong></p>
+<ul class="simple">
+<li><p><strong>Explicit Euler</strong></p>
+<ul>
+<li><p><strong>100 Steps (<span class="math notranslate nohighlight">\(\Delta t = 10\tau\)</span>):</strong> Violates the stability condition (<span class="math notranslate nohighlight">\(10\tau &gt; 2\tau\)</span>). The solution explodes immediately, reaching physically impossible values (<span class="math notranslate nohighlight">\(10^{57}\)</span>).</p></li>
+<li><p><strong>1000 Steps (<span class="math notranslate nohighlight">\(\Delta t = \tau\)</span>):</strong> Stable. Because <span class="math notranslate nohighlight">\(\Delta t = \tau\)</span>, the derivative projection lands exactly on the steady-state value in a single step (jumping from 0 to 1 instantly).</p></li>
+</ul>
+</li>
+<li><p><strong>Implicit Euler</strong></p>
+<ul>
+<li><p><strong>Stable but Damped:</strong> Even with large steps (<span class="math notranslate nohighlight">\(10\tau\)</span>), the solution never explodes. However, it exhibits numerical damping, causing the voltage to lag behind the rapid initial changes.</p></li>
+</ul>
+</li>
+<li><p><strong>Crank-Nicolson</strong></p>
+<ul>
+<li><p><strong>Stable but Oscillatory:</strong> Also stable for large steps (<span class="math notranslate nohighlight">\(10\tau\)</span>). However, it suffers from spurious oscillations (overshoot <span class="math notranslate nohighlight">\(&gt;1\)</span>) during the initial transient because it averages the derivatives at <span class="math notranslate nohighlight">\(t_n\)</span> and <span class="math notranslate nohighlight">\(t_{n+1}\)</span>, struggling to resolve the fast charge-up.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="part-2-system-r-1-c-1">
+<h3>Part 2: System (<span class="math notranslate nohighlight">\(R=1, C=1\)</span>)<a class="headerlink" href="#part-2-system-r-1-c-1" title="Link to this heading">#</a></h3>
+<p><strong>1. System Characteristics</strong></p>
+<p>With the new parameters, the system dynamics change drastically:</p>
+<ul class="simple">
+<li><p>Time Constant: <span class="math notranslate nohighlight">\(\tau = RC = 1 \, s\)</span>.</p></li>
+<li><p>Eigenvalue: <span class="math notranslate nohighlight">\(\lambda = -1\)</span>.</p></li>
+<li><p>Stability Limit (Explicit): <span class="math notranslate nohighlight">\(|1 - \Delta t| \le 1 \Rightarrow \Delta t \le 2 \, s\)</span>.</p></li>
+</ul>
+<p>This system is non-stiff because the time constant (<span class="math notranslate nohighlight">\(\tau=1\)</span>) is much slower than the simulation time steps used (<span class="math notranslate nohighlight">\(10^{-3}\)</span> to <span class="math notranslate nohighlight">\(10^{-5}\)</span>).</p>
+<p><strong>2. Stability Analysis</strong></p>
+<p>Unlike the previous case, all methods are stable for all step sizes tested.
+The largest step size used is <span class="math notranslate nohighlight">\(\Delta t = 0.001 \, s\)</span>.
+Since <span class="math notranslate nohighlight">\(0.001 \ll 2\)</span> (the stability limit), Explicit Euler is well within its stability region.
+<em>Observation:</em> No explosions or wild oscillations are observed.</p>
+<p><strong>3. Physical Behavior: Low-Pass Filtering &amp; Phase Shift</strong></p>
+<p>The circuit acts as a strong low-pass filter with significant phase lag.</p>
+<ul class="simple">
+<li><p><strong>Amplitude Attenuation:</strong>
+Since the source frequency <span class="math notranslate nohighlight">\(\omega = 100\pi \approx 314\)</span> rad/s is much higher than the cutoff <span class="math notranslate nohighlight">\(\omega_c = 1\)</span> rad/s, the amplitude is attenuated by a factor of <span class="math notranslate nohighlight">\(\approx 1/314\)</span>. The data shows peaks around <span class="math notranslate nohighlight">\(0.003\)</span>V, matching this theory.</p></li>
+<li><p><strong>Phase Shift (<span class="math notranslate nohighlight">\(\phi\)</span>):</strong>
+The theoretical phase shift is <span class="math notranslate nohighlight">\(\phi = -\arctan(\omega RC) = -\arctan(314) \approx -89.8^\circ\)</span>.</p></li>
+<li><p><strong>Observation in Data:</strong>
+The voltage should lag the source by almost exactly <span class="math notranslate nohighlight">\(90^\circ\)</span> (<span class="math notranslate nohighlight">\(\pi/2\)</span>), which corresponds to a time lag of <span class="math notranslate nohighlight">\(0.005s\)</span> (quarter period). Looking at the graphs the capacitor voltage behaves like a Sine wave while the source is a Cosine wave, demonstrating the predicted <span class="math notranslate nohighlight">\(90^\circ\)</span> lag.</p></li>
+</ul>
+</section>
+<section id="comparison-of-methods">
+<h3>Comparison of Methods<a class="headerlink" href="#comparison-of-methods" title="Link to this heading">#</a></h3>
+<p>Because the step sizes are small relative to the system time constant (<span class="math notranslate nohighlight">\(\Delta t \ll \tau\)</span>), the numerical errors are small for all methods.</p>
+<ul class="simple">
+<li><p><strong>Amplitude Discrepancy (Low N):</strong> At the coarsest resolution (100 steps), there is a distinct difference in amplitude due to numerical error properties.</p>
+<ul>
+<li><p>Explicit Euler overestimates the peak (<span class="math notranslate nohighlight">\(\approx 0.0036\)</span>V).</p></li>
+<li><p>Crank-Nicolson sits in the middle (<span class="math notranslate nohighlight">\(\approx 0.0031\)</span>V).</p></li>
+<li><p>Implicit Euler is the most damped and underestimates the peak (<span class="math notranslate nohighlight">\(\approx 0.0026\)</span>V).</p></li>
+<li><p><em>Reason:</em> This occurs because Explicit Euler extrapolates linearly (overshooting convex curves), while Implicit Euler is numerically dissipative.</p></li>
+</ul>
+</li>
+<li><p><strong>Resolution:</strong> Even the coarsest resolution (100 steps, <span class="math notranslate nohighlight">\(\Delta t = 0.001\)</span>) provides <span class="math notranslate nohighlight">\(\sim 20\)</span> points per period of the source (<span class="math notranslate nohighlight">\(T=0.02s\)</span>), sufficient to capture the general wave shape, though the amplitude accuracy varies by method as noted above.</p></li>
+</ul>
+</section>
+<section id="summary-comparison">
+<h3>Summary Comparison<a class="headerlink" href="#summary-comparison" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Parameter Set</p></th>
+<th class="head text-left"><p>Time Constant <span class="math notranslate nohighlight">\(\tau\)</span></p></th>
+<th class="head text-left"><p>System Type</p></th>
+<th class="head text-left"><p>Explicit Euler (100 steps)</p></th>
+<th class="head text-left"><p>Physical Outcome</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><strong>Set 1 (<span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span>)</strong></p></td>
+<td class="text-left"><p><span class="math notranslate nohighlight">\(10^{-4} s\)</span></p></td>
+<td class="text-left"><p>Stiff</p></td>
+<td class="text-left"><p>Unstable (Explodes)</p></td>
+<td class="text-left"><p>Fast charge (tracks source)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><strong>Set 2 (<span class="math notranslate nohighlight">\(R=1, C=1\)</span>)</strong></p></td>
+<td class="text-left"><p><span class="math notranslate nohighlight">\(1 s\)</span></p></td>
+<td class="text-left"><p>Non-Stiff</p></td>
+<td class="text-left"><p>Stable</p></td>
+<td class="text-left"><p>Filtered (Low amp, <span class="math notranslate nohighlight">\(90^\circ\)</span> lag)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="code">
+<h2>Code<a class="headerlink" href="#code" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ElectricNetwork</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">NonlinearFunction</span>
+<span class="p">{</span>
+<span class="k">private</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">R</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">C</span><span class="p">;</span><span class="w"> </span>
+
+<span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">ElectricNetwork</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="n">r</span><span class="p">),</span><span class="w"> </span><span class="n">C</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">dimX</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">dimF</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">evaluate</span><span class="w"> </span><span class="p">(</span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">Uc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">t</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">cos</span><span class="p">(</span><span class="mf">100.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">M_PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Uc</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">);</span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">evaluateDeriv</span><span class="w"> </span><span class="p">(</span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">MatrixView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">df</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">df</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">);</span>
+<span class="w">    </span><span class="n">df</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="p">(</span><span class="mf">100.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">M_PI</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sin</span><span class="p">(</span><span class="mf">100.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">M_PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">C</span><span class="p">);</span>
+<span class="w">    </span><span class="n">df</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">df</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="exercise-18-4">
+<h1>Exercise 18.4<a class="headerlink" href="#exercise-18-4" title="Link to this heading">#</a></h1>
+<p>We can use automatic differentiation to compute the derivative of a function.<br />
+In the first part of this exercise, we had to implement additional operators and functions for the <code class="docutils literal notranslate"><span class="pre">AutoDiff</span></code> class.</p>
+<hr class="docutils" />
+<section id="subtraction">
+<h2>Subtraction<a class="headerlink" href="#subtraction" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">operator</span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The subtraction operator implements element-wise differentiation of the expression<br />
+<span class="math notranslate nohighlight">\( a - b \)</span>. Because subtraction is linear, the derivative of the result is simply the difference of the individual derivatives, making this operator straightforward to implement.</p>
+</section>
+<hr class="docutils" />
+<section id="division">
+<h2>Division<a class="headerlink" href="#division" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">operator</span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span>
+<span class="w">            </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">])</span><span class="w"> </span><span class="o">/</span>
+<span class="w">            </span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The division operator computes both the value and derivative of the quotient $\frac{a}{b}$ using the quotient rule:</p>
+<div class="math notranslate nohighlight">
+\[ \frac{d}{dx_i}\!\left(\frac{a}{b}\right) = \frac{a_i' \, b - a\, b_i'}{b^2} \]</div>
+<p>This allows automatic differentiation to propagate derivatives correctly through division.</p>
+<p>These operators enable the evaluation and plotting of derivatives of the Legendre polynomials later in the exercise.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="additional-autodiff-functions">
+<h1>Additional AutoDiff Functions<a class="headerlink" href="#additional-autodiff-functions" title="Link to this heading">#</a></h1>
+<p>Below are the functions added to extend the mathematical capabilities of the <code class="docutils literal notranslate"><span class="pre">AutoDiff</span></code> class.</p>
+<hr class="docutils" />
+<section id="square">
+<h2>Square<a class="headerlink" href="#square" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">square</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">T</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This function computes <span class="math notranslate nohighlight">\( a^2 \)</span> and uses the derivative<br />
+<span class="math notranslate nohighlight">\( \frac{d}{dx}(a^2) = 2a\,a' \)</span>.<br />
+It demonstrates how simple nonlinear operations can be expressed through the product rule.</p>
+</section>
+<hr class="docutils" />
+<section id="square-root">
+<h2>Square Root<a class="headerlink" href="#square-root" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">val</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">T</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">val</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The square root uses the derivative identity<br />
+<span class="math notranslate nohighlight">\( \frac{d}{dx}\sqrt{a} = \frac{a'}{2\sqrt{a}} \)</span></p>
+</section>
+<hr class="docutils" />
+<section id="cosine">
+<h2>Cosine<a class="headerlink" href="#cosine" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">cos</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()));</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="tangent">
+<h2>Tangent<a class="headerlink" href="#tangent" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tan</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">tan</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()));</span>
+<span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">sec2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()));</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sec2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Both the tan function and the cosine function were implemented practically identical to the sine function.</p>
+</section>
+<hr class="docutils" />
+<section id="logarithm">
+<h2>Logarithm<a class="headerlink" href="#logarithm" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">log</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()));</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">();</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The natural logarithm uses<br />
+<span class="math notranslate nohighlight">\( \frac{d}{dx}\log(a) = \frac{a'}{a} \)</span></p>
+</section>
+<hr class="docutils" />
+<section id="exponential">
+<h2>Exponential<a class="headerlink" href="#exponential" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">size_t</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span>
+<span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">exp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">value</span><span class="p">()));</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="n">result</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The exponential function follows<br />
+<span class="math notranslate nohighlight">\(
+\frac{d}{dx} e^{a} = e^{a}\, a'
+\)</span>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="legendre-polynomials">
+<h1>Legendre Polynomials<a class="headerlink" href="#legendre-polynomials" title="Link to this heading">#</a></h1>
+<p>To evaluate Legendre polynomials and their derivatives up to order 5, we implemented a templated function <code class="docutils literal notranslate"><span class="pre">LegendrePolynomials</span></code> based on the standard recurrence relation</p>
+<div class="math notranslate nohighlight">
+\[
+P_0(x) = 1, \qquad P_1(x) = x
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+P_k(x) =
+\frac{(2k-1)\,x\,P_{k-1}(x) - (k-1)\,P_{k-2}(x)}{k}
+\]</div>
+<p>We can see here how the implementation of additional of operators was required for the <code class="docutils literal notranslate"><span class="pre">AutoDiff</span></code> method to work, since the division and the subtraction operator are essential parts of the legendre polynomial.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fstream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;autodiff.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;legendre.hpp&quot;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">ASC_ode</span><span class="o">::</span><span class="n">AutoDiff</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">file</span><span class="p">(</span><span class="s">&quot;../results/legendre_output.csv&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,P&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,dP&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">    </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-1.0</span><span class="p">;</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">0.01</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
+<span class="w">        </span><span class="n">x</span><span class="p">.</span><span class="n">deriv</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">P</span><span class="p">;</span>
+<span class="w">        </span><span class="n">LegendrePolynomials</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">P</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">t</span><span class="p">;</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">            </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">deriv</span><span class="p">()[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="n">file</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Wrote legendre_output.csv (polynomials + derivatives)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the main program, each sample point <span class="math notranslate nohighlight">\( x \in [-1,1] \)</span> is represented as an <code class="docutils literal notranslate"><span class="pre">AutoDiff</span></code> variable with its derivative initialized to one. Passing this variable into the Legendre routine ensures that both <span class="math notranslate nohighlight">\( P_k(x) \)</span> and <span class="math notranslate nohighlight">\( \frac{dP_k}{dx} \)</span> are computed automatically through the recurrence. The LegendrePolynomials function then computes both the polynomial values and their exact derivatives at that point.</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="results">
+<h1>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h1>
+<img alt="_images/legendre_output.png" src="_images/legendre_output.png" />
+<p>The first plot shows the Legendre polynomials <span class="math notranslate nohighlight">\(P_0\)</span> through <span class="math notranslate nohighlight">\(P_5\)</span>. The higher order Polynomials exhibit increasing oscillatory behavior. They also all satisfy the boundary condition <span class="math notranslate nohighlight">\(P_n(1) = 1\)</span>. The overall symmetry properties are clearly visible: even polynomials are symmetric, whereas odd polynomials are asymmetric.</p>
+<img alt="_images/legendre_output_derivative.png" src="_images/legendre_output_derivative.png" />
+<p>The second plot shows the corresponding derivatives. Since differentiation lowers the polynomial degree by one, the derivative curves display fewer zero crossings and opposite parity: the derivative of an even Legendre polynomial is odd and vice versa.</p>
+<p>Together, the two plots illustrate the structure of Legendre polynomials and demonstrate the effectiveness of automatic differentiation in propagating exact derivatives through a recursive definition.</p>
+<section id="testing-of-the-autodiff-class-for-the-pendulum">
+<h2>Testing of the AutoDiff Class for the Pendulum<a class="headerlink" href="#testing-of-the-autodiff-class-for-the-pendulum" title="Link to this heading">#</a></h2>
+<section id="id1">
+<h3>1. Mathematical Model<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>The motion of a simple pendulum is described by the nonlinear second-order differential equation</p>
+<div class="math notranslate nohighlight">
+\[
+\ddot{\alpha}(t) + \frac{g}{L}\sin(\alpha(t)) = 0,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha(t)\)</span> is the angular displacement, <span class="math notranslate nohighlight">\(L\)</span> the length of the pendulum, and <span class="math notranslate nohighlight">\(g\)</span> the gravitational acceleration.</p>
+</section>
+<section id="id2">
+<h3>2. Transformation to Autonomous Form<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>To apply standard ODE solvers, the equation is rewritten as a first-order system. Introducing the angular velocity</p>
+<div class="math notranslate nohighlight">
+\[
+\beta = \dot{\alpha},
+\]</div>
+<p>we obtain the autonomous system</p>
+<div class="math notranslate nohighlight">
+\[
+\dot{\alpha} = \beta, \qquad
+\dot{\beta} = -\frac{g}{L}\sin(\alpha).
+\]</div>
+<p>The right-hand side depends only on <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>, so the system is written in autonomous form.</p>
+</section>
+<section id="automatic-differentiation">
+<h3>3. Automatic Differentiation<a class="headerlink" href="#automatic-differentiation" title="Link to this heading">#</a></h3>
+<p>Automatic differentiation is used to compute the derivatives needed for the Jacobian of the system. In automatic differentiation, each intermediate quantity carries both a value and its gradient. During computation, standard differentiation rules (product rule, chain rule, etc.) are applied automatically. This avoids choosing a finite-difference step size and yields derivative values that are exact up to machine precision.</p>
+</section>
+<section id="testing">
+<h3>4. Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h3>
+<p>To test the implementation of the pendulum model and the automatic differentiation mechanism, we wrote a simple <code class="docutils literal notranslate"><span class="pre">main</span></code> function that evaluates both the right-hand side of the ODE and its Jacobian at a chosen test point. We chose a pendulum with <span class="math notranslate nohighlight">\(L = 1.0\)</span> and <span class="math notranslate nohighlight">\(g = 9.81\)</span>, and evaluated the system at</p>
+<div class="math notranslate nohighlight">
+\[
+\alpha = 0.5, \qquad \dot{\alpha} = 0.0.
+\]</div>
+<p>The program output is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.70316</span><span class="p">)</span>
+
+<span class="n">Df</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="mi">0</span> <span class="mi">1</span>
+<span class="o">-</span><span class="mf">8.60908</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>The value<br />
+<span class="math notranslate nohighlight">\(\dot{\beta} = -\frac{g}{L}\sin(0.5) \approx -4.70316\)</span><br />
+matches the expected model.<br />
+The Jacobian agrees with the analytical expression</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+Df(\alpha,\beta) =
+\begin{pmatrix}
+0 &amp; 1 \\
+-\frac{g}{L}\cos(\alpha) &amp; 0
+\end{pmatrix},
+\end{split}\]</div>
+<p>since<br />
+<span class="math notranslate nohighlight">\(-\frac{g}{L}\cos(0.5) \approx -8.60908\)</span>.</p>
+<p>The agreement between the computed and theoretical values confirms that the automatic differentiation is working correctly and produces the expected derivatives.</p>
+</section>
+<hr class="docutils" />
+<section id="id3">
+<h3>5. Code<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cmath&gt;</span><span class="c1"> </span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;autodiff.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nonlinfunc.hpp&gt;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ASC_ode</span><span class="p">;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PendulumAD</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">NonlinearFunction</span>
+<span class="p">{</span>
+<span class="k">private</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">m_length</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">m_gravity</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">PendulumAD</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">gravity</span><span class="o">=</span><span class="mf">9.81</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_length</span><span class="p">(</span><span class="n">length</span><span class="p">),</span><span class="w"> </span><span class="n">m_gravity</span><span class="p">(</span><span class="n">gravity</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">dimX</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">dimF</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">evaluate</span><span class="w"> </span><span class="p">(</span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">T_evaluate</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">evaluateDeriv</span><span class="w"> </span><span class="p">(</span><span class="n">VectorView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">MatrixView</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">df</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Vector</span><span class="o">&lt;</span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">x_ad</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Vector</span><span class="o">&lt;</span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">f_ad</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">x_ad</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Variable</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+<span class="w">    </span><span class="n">x_ad</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Variable</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="w">    </span><span class="n">T_evaluate</span><span class="o">&lt;</span><span class="n">AutoDiff</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">x_ad</span><span class="p">,</span><span class="w"> </span><span class="n">f_ad</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+<span class="w">         </span><span class="n">df</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f_ad</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">deriv</span><span class="p">()[</span><span class="n">j</span><span class="p">];</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">T_evaluate</span><span class="w"> </span><span class="p">(</span><span class="n">VectorView</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">VectorView</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">m_gravity</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">m_length</span><span class="p">;</span>
+<span class="w">    </span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="p">};</span>
+
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">length</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">gravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">9.81</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">PendulumAD</span><span class="w"> </span><span class="n">pend</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="n">gravity</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">alpha</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">alpha_dot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">x</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alpha</span><span class="p">;</span>
+<span class="w">    </span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alpha_dot</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">pend</span><span class="p">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;x = (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;f(x) = (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Matrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">df</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">pend</span><span class="p">.</span><span class="n">evaluateDeriv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Df(x):</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">df</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;  &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">df</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">df</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;  &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">df</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="runge-kutta-methods">
+<h1>Runge Kutta Methods<a class="headerlink" href="#runge-kutta-methods" title="Link to this heading">#</a></h1>
+<section id="exercise-19-4">
+<h2>Exercise 19.4<a class="headerlink" href="#exercise-19-4" title="Link to this heading">#</a></h2>
+<section id="testing-of-implicit-runge-kutta-methods">
+<h3>Testing of Implicit Runge-Kutta Methods<a class="headerlink" href="#testing-of-implicit-runge-kutta-methods" title="Link to this heading">#</a></h3>
+<p>The Implicit Runge-Kutta Methods utilize the <code class="docutils literal notranslate"><span class="pre">NewtonSolver</span></code> to solve a nonlinear system to calculate the next step. They all showcase both A stability, where increasing <span class="math notranslate nohighlight">\(τ\)</span> will not blow up the solution. The Gauss methods preserve the energy of the system while the Radau method introduces dampening.
+Both methods are computationally more expensive than the Explicit Methods due to the Jacobian.</p>
+<section id="graphs">
+<h4>Graphs<a class="headerlink" href="#graphs" title="Link to this heading">#</a></h4>
+<img alt="_images/implicit_error.png" src="_images/implicit_error.png" />
+<img alt="_images/implicit_phase.png" src="_images/implicit_phase.png" />
+<img alt="_images/implicit_time.png" src="_images/implicit_time.png" />
+</section>
+<section id="conclusion">
+<h4>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">#</a></h4>
+<p>The Gauss2, Gauss3, and Radau IIA are all high order with Gauss-Legendre being <span class="math notranslate nohighlight">\(2s\)</span> where <span class="math notranslate nohighlight">\(s\)</span> is the number of stages, and Radau being <span class="math notranslate nohighlight">\(2s-1\)</span>. This meant that the global errors were very small compared to the amplitutde, which is shown with the graphs overlapping almost perfectly. When zooming in, some differences can be noted but the differences is very small. These differences would be greater if the time steps became larger, or over a much longer time.</p>
+</section>
+</section>
+<section id="implementation-of-explicit-runge-kutta-method">
+<h3>Implementation of Explicit Runge-Kutta Method<a class="headerlink" href="#implementation-of-explicit-runge-kutta-method" title="Link to this heading">#</a></h3>
+<p>The explicit Runge-Kutta Method was implemented in a class <code class="docutils literal notranslate"><span class="pre">ExplicitRungeKutta</span></code> which was able to store a general lower-triangular Butcher matrix <code class="docutils literal notranslate"><span class="pre">A</span></code> and vectors <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code>.</p>
+<p>This was then implemented wit the RK2 Method, the RK4 method and the Nyström method.</p>
+<section id="id4">
+<h4>Graphs<a class="headerlink" href="#id4" title="Link to this heading">#</a></h4>
+<img alt="_images/explicit_error.png" src="_images/explicit_error.png" />
+<img alt="_images/explicit_phase.png" src="_images/explicit_phase.png" />
+<img alt="_images/explicit_time.png" src="_images/explicit_time.png" />
+</section>
+<section id="id5">
+<h4>Conclusion<a class="headerlink" href="#id5" title="Link to this heading">#</a></h4>
+<p>The results showed that as the order increased, the Methods became more accurate with a smaller deviation from the Analytic Solution. They also showed that the answers were all more similar at the beginning and that the deviations were larger at the end. The order of accuracy also scaled with what order so the <code class="docutils literal notranslate"><span class="pre">RK2</span></code>  method had the largest error. The Nyström method had an error very similar to the implicit methods, so very low, but it alos is the most expensive per step. They are explicit methods, which means they are conditionally stable and as the step size increases they will eventually lose accuract and stability.</p>
+</section>
+</section>
+</section>
+</section>
 
     <script type="text/x-thebe-config">
     {
@@ -663,12 +1322,72 @@ The Crank-Nicholson Method is energy preserving, therefore the oscillations will
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-euler-method">Explicit Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-method">Implicit Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-euler-method">Improved Euler Method</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#crank-nicolson-method">Crank-Nicolson Method</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretation-of-plots">Interpretation of Plots</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#nssc1-numerical-methods-for-ordinary-differential-equations-exercises-part-2">NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 2</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-report-electric-network-simulation">Exercise Report: Electric Network Simulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-model">1. Mathematical Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-autonomous-form">2. Transformation to Autonomous Form</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian-for-implicit-methods">3. Jacobian for Implicit Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">4. Setup</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analysis-of-simulation-results">Analysis of Simulation Results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-1-r-100-c-10-6">Part 1: (<span class="math notranslate nohighlight">\(R=100, C=10^{-6}\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#part-2-system-r-1-c-1">Part 2: System (<span class="math notranslate nohighlight">\(R=1, C=1\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-of-methods">Comparison of Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-comparison">Summary Comparison</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code">Code</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-18-4">Exercise 18.4</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subtraction">Subtraction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#division">Division</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-autodiff-functions">Additional AutoDiff Functions</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#square">Square</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#square-root">Square Root</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cosine">Cosine</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tangent">Tangent</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logarithm">Logarithm</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exponential">Exponential</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-polynomials">Legendre Polynomials</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-of-the-autodiff-class-for-the-pendulum">Testing of the AutoDiff Class for the Pendulum</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">1. Mathematical Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">2. Transformation to Autonomous Form</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-differentiation">3. Automatic Differentiation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">4. Testing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">5. Code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#runge-kutta-methods">Runge Kutta Methods</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-19-4">Exercise 19.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-of-implicit-runge-kutta-methods">Testing of Implicit Runge-Kutta Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#graphs">Graphs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-of-explicit-runge-kutta-method">Implementation of Explicit Runge-Kutta Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Graphs</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

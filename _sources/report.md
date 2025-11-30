@@ -1,4 +1,4 @@
-# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1
+# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises
 
 For this exercise, we compared several different time-stepping methods for a mass attached to a spring, this is described by the ODE:
 
@@ -305,3 +305,623 @@ The Crank-Nicholson Method is energy preserving, therefore the oscillations will
 
 
 For τ = 100000, the numerical time evolution is smooth and closely matches the expected sinusoidal behavior.  This demonstrates the expected convergence behavior of the integrators: as τ decreases, the numerical error shrinks at the rate predicted by the theoretical order of the method.
+
+
+# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 2
+<img src="../docs/image.png" width="350px">
+
+## Exercise Report: Electric Network Simulation
+
+### 1. Mathematical Model
+
+We model a simple RC circuit consisting of a resistor $R$, a capacitor $C$, and a time-dependent voltage source $U_0(t) = \cos(100 \pi t)$.
+
+Using Ohm's law ($U_R = R I$) and the capacitor equation ($I = C \dot{U}_C$), we apply Kirchhoff's voltage law, which states that voltages around a loop sum to zero ($U_0 = U_R + U_C$). This yields the linear Ordinary Differential Equation (ODE):
+
+$$U_C(t) + RC \frac{dU_C}{dt}(t) = U_0(t)$$
+
+Rearranging for the derivative, we obtain the standard non-autonomous form $\dot{y} = f(t, y)$:
+
+$$\frac{dU_C}{dt} = \frac{U_0(t) - U_C(t)}{RC} = \frac{\cos(100 \pi t) - U_C}{RC}$$
+
+### 2. Transformation to Autonomous Form
+
+To utilize numerical solvers designed for autonomous systems ($\dot{\mathbf{y}} = F(\mathbf{y})$), we must eliminate the explicit time dependence. We achieve this by extending the state space to treat time as a dependent variable.
+
+We define a new state vector $\mathbf{y} \in \mathbb{R}^2$:
+
+* $y_1 = U_C$ (Capacitor Voltage)
+* $y_2 = t$ (Time)
+
+The derivatives are formulated as follows:
+
+* **Voltage:** $\dot{y}_1 = \frac{U_0(y_2) - y_1}{RC}$
+* **Time:** $\dot{y}_2 = \frac{dt}{dt} = 1$
+
+This results in the following autonomous system:
+
+$$\dot{\mathbf{y}} = \begin{pmatrix} \frac{\cos(100 \pi y_2) - y_1}{RC} \\ 1 \end{pmatrix}$$
+
+### 3. Jacobian for Implicit Methods
+
+For the implementation of implicit solvers (Implicit Euler, Crank-Nicolson), the Jacobian matrix $J = \frac{\partial F}{\partial \mathbf{y}}$ is required. Differentiating the system vector with respect to $y_1$ and $y_2$:
+
+$$J = \begin{pmatrix} 
+\frac{\partial \dot{y}_1}{\partial y_1} & \frac{\partial \dot{y}_1}{\partial y_2} \\
+\frac{\partial \dot{y}_2}{\partial y_1} & \frac{\partial \dot{y}_2}{\partial y_2}
+\end{pmatrix} = 
+\begin{pmatrix} 
+-\frac{1}{RC} & -\frac{100 \pi \sin(100 \pi y_2)}{RC} \\
+0 & 0
+\end{pmatrix}$$
+
+The simulation uses this system with initial conditions $\mathbf{y}(0) = [0, 0]^T$.
+
+### 4. Setup
+
+When running the code 3 different stepping sizes have been used. $N = \{100, 1000, 10000\}$. And the two different model parameters $R=1, C=1$ and $R=100, C=10^{-6}$. As a total time 0.1 seconds were choosen. The results displayed in graphs can be found below. For each step size the resulting Capacity Voltage has been plotted for the 3 numerical methods: The explicit Euler, the implicit Euler and the Crank-Nicolson. The input voltage has been scaled to the the size of the capacity voltage, so that the phase shift can be nicely seen.
+
+**Simulation Results**
+
+<img src="../results/Electrical_Circuit/circuit_plot_100_1.png" width="350px"> 
+
+*Plot for 100 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_1000_1.png" width="350px">
+
+*Plot for 1000 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_10000_1.png" width="350px">
+
+*Plot for 10000 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_100_1.png" width="350px"> 
+
+*Plot for 100 time steps and $R=100, C=10^{-6}$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_1000_1.png" width="350px">
+
+*Plot for 1000 time steps and $R=100, C=10^{-6}$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_10000_1.png" width="350px">
+
+*Plot for 10000 time steps and $R=100, C=10^{-6}$*
+
+---
+
+## Analysis of Simulation Results
+
+### Part 1: ($R=100, C=10^{-6}$)
+
+**1. Stiffness & Stability Limits**
+
+The system is stiff, characterized by a fast time constant $\tau = RC = 10^{-4}s$ and a large negative eigenvalue $\lambda = -10000$.
+
+* **Explicit Euler Stability Condition:** $|1 + \lambda \Delta t| \le 1$.
+    For this system, stability requires $\Delta t \le 2 \cdot 10^{-4}s$.
+* **Implicit Method Stability:** Implicit Euler and Crank-Nicolson are A-stable, meaning they remain stable for any step size $\Delta t$, regardless of $\tau$.
+
+**2. Method Behavior**
+
+* **Explicit Euler**
+    * **100 Steps ($\Delta t = 10\tau$):** Violates the stability condition ($10\tau > 2\tau$). The solution explodes immediately, reaching physically impossible values ($10^{57}$).
+    * **1000 Steps ($\Delta t = \tau$):** Stable. Because $\Delta t = \tau$, the derivative projection lands exactly on the steady-state value in a single step (jumping from 0 to 1 instantly).
+
+* **Implicit Euler**
+    * **Stable but Damped:** Even with large steps ($10\tau$), the solution never explodes. However, it exhibits numerical damping, causing the voltage to lag behind the rapid initial changes.
+
+* **Crank-Nicolson**
+    * **Stable but Oscillatory:** Also stable for large steps ($10\tau$). However, it suffers from spurious oscillations (overshoot $>1$) during the initial transient because it averages the derivatives at $t_n$ and $t_{n+1}$, struggling to resolve the fast charge-up.
+
+### Part 2: System ($R=1, C=1$)
+
+**1. System Characteristics**
+
+With the new parameters, the system dynamics change drastically:
+
+* Time Constant: $\tau = RC = 1 \, s$.
+* Eigenvalue: $\lambda = -1$.
+* Stability Limit (Explicit): $|1 - \Delta t| \le 1 \Rightarrow \Delta t \le 2 \, s$.
+
+This system is non-stiff because the time constant ($\tau=1$) is much slower than the simulation time steps used ($10^{-3}$ to $10^{-5}$).
+
+**2. Stability Analysis**
+
+Unlike the previous case, all methods are stable for all step sizes tested.
+The largest step size used is $\Delta t = 0.001 \, s$.
+Since $0.001 \ll 2$ (the stability limit), Explicit Euler is well within its stability region.
+*Observation:* No explosions or wild oscillations are observed.
+
+**3. Physical Behavior: Low-Pass Filtering & Phase Shift**
+
+The circuit acts as a strong low-pass filter with significant phase lag.
+
+* **Amplitude Attenuation:**
+    Since the source frequency $\omega = 100\pi \approx 314$ rad/s is much higher than the cutoff $\omega_c = 1$ rad/s, the amplitude is attenuated by a factor of $\approx 1/314$. The data shows peaks around $0.003$V, matching this theory.
+
+* **Phase Shift ($\phi$):**
+    The theoretical phase shift is $\phi = -\arctan(\omega RC) = -\arctan(314) \approx -89.8^\circ$.
+
+* **Observation in Data:**
+    The voltage should lag the source by almost exactly $90^\circ$ ($\pi/2$), which corresponds to a time lag of $0.005s$ (quarter period). Looking at the graphs the capacitor voltage behaves like a Sine wave while the source is a Cosine wave, demonstrating the predicted $90^\circ$ lag.
+
+### Comparison of Methods
+
+Because the step sizes are small relative to the system time constant ($\Delta t \ll \tau$), the numerical errors are small for all methods.
+
+* **Amplitude Discrepancy (Low N):** At the coarsest resolution (100 steps), there is a distinct difference in amplitude due to numerical error properties.
+    * Explicit Euler overestimates the peak ($\approx 0.0036$V).
+    * Crank-Nicolson sits in the middle ($\approx 0.0031$V).
+    * Implicit Euler is the most damped and underestimates the peak ($\approx 0.0026$V).
+    * *Reason:* This occurs because Explicit Euler extrapolates linearly (overshooting convex curves), while Implicit Euler is numerically dissipative.
+
+* **Resolution:** Even the coarsest resolution (100 steps, $\Delta t = 0.001$) provides $\sim 20$ points per period of the source ($T=0.02s$), sufficient to capture the general wave shape, though the amplitude accuracy varies by method as noted above.
+
+### Summary Comparison
+
+| Parameter Set | Time Constant $\tau$ | System Type | Explicit Euler (100 steps) | Physical Outcome |
+| :--- | :--- | :--- | :--- | :--- |
+| **Set 1 ($R=100, C=10^{-6}$)** | $10^{-4} s$ | Stiff | Unstable (Explodes) | Fast charge (tracks source) |
+| **Set 2 ($R=1, C=1$)** | $1 s$ | Non-Stiff | Stable | Filtered (Low amp, $90^\circ$ lag) |
+
+## Code
+
+```cpp
+class ElectricNetwork : public NonlinearFunction
+{
+private:
+  double R;
+  double C; 
+
+public:
+  ElectricNetwork(double r, double c) : R(r), C(c) {}
+
+  size_t dimX() const override { return 2; }
+  size_t dimF() const override { return 2; }
+
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
+  {
+    double Uc = x(0);
+    double t  = x(1);
+    f(0) = (std::cos(100.0 * M_PI * t) - Uc) / (R * C);
+    f(1) = 1.0;
+  }
+
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  {
+    double t = x(1);
+    df = 0.0;
+    df(0,0) = -1.0 / (R * C);
+    df(0,1) = -(100.0 * M_PI) * std::sin(100.0 * M_PI * t) / (R * C);
+    df(1,0) = 0.0;
+    df(1,1) = 0.0;
+  }
+};
+```
+
+# Exercise 18.4
+
+We can use automatic differentiation to compute the derivative of a function.  
+In the first part of this exercise, we had to implement additional operators and functions for the `AutoDiff` class.
+
+---
+
+## Subtraction
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> operator- (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+{
+    AutoDiff<N, T> result(a.value() - b.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] - b.deriv()[i];
+    return result;
+}
+```
+
+The subtraction operator implements element-wise differentiation of the expression  
+$ a - b $. Because subtraction is linear, the derivative of the result is simply the difference of the individual derivatives, making this operator straightforward to implement.
+
+---
+
+## Division
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> operator/ (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+{
+    AutoDiff<N, T> result(a.value() / b.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] =
+            (a.deriv()[i] * b.value() - a.value() * b.deriv()[i]) /
+            (b.value() * b.value());
+    return result;
+}
+```
+
+The division operator computes both the value and derivative of the quotient $\frac{a}{b}\$ using the quotient rule:
+
+$$ \frac{d}{dx_i}\!\left(\frac{a}{b}\right) = \frac{a_i' \, b - a\, b_i'}{b^2} $$
+
+This allows automatic differentiation to propagate derivatives correctly through division.
+
+These operators enable the evaluation and plotting of derivatives of the Legendre polynomials later in the exercise.
+
+---
+
+# Additional AutoDiff Functions
+
+Below are the functions added to extend the mathematical capabilities of the `AutoDiff` class.
+
+---
+
+## Square
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> square(const AutoDiff<N, T>& a)
+{
+    AutoDiff<N, T> result(a.value() * a.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = T(2) * a.value() * a.deriv()[i];
+    return result;
+}
+```
+
+This function computes $ a^2 $ and uses the derivative  
+$ \frac{d}{dx}(a^2) = 2a\,a' $.  
+It demonstrates how simple nonlinear operations can be expressed through the product rule.
+
+---
+
+## Square Root
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> sqrt(const AutoDiff<N, T>& a)
+{
+    T val = std::sqrt(a.value());
+    AutoDiff<N, T> result(val);
+
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] / (T(2) * val);
+
+    return result;
+}
+```
+
+The square root uses the derivative identity  
+$ \frac{d}{dx}\sqrt{a} = \frac{a'}{2\sqrt{a}} $
+
+
+---
+
+## Cosine
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> cos(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(cos(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = -sin(a.value()) * a.deriv()[i];
+    return result;
+}
+```
+
+---
+
+## Tangent
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> tan(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(tan(a.value()));
+    T sec2 = 1 / (cos(a.value()) * cos(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = sec2 * a.deriv()[i];
+    return result;
+}
+```
+Both the tan function and the cosine function were implemented practically identical to the sine function.
+
+---
+
+## Logarithm
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> log(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(log(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] / a.value();
+    return result;
+}
+```
+
+The natural logarithm uses  
+$ \frac{d}{dx}\log(a) = \frac{a'}{a} $
+
+---
+
+## Exponential
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> exp(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(exp(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = result.value() * a.deriv()[i];
+    return result;
+}
+```
+
+The exponential function follows  
+$
+\frac{d}{dx} e^{a} = e^{a}\, a'
+$.  
+
+---
+
+# Legendre Polynomials
+
+To evaluate Legendre polynomials and their derivatives up to order 5, we implemented a templated function `LegendrePolynomials` based on the standard recurrence relation
+
+$$
+P_0(x) = 1, \qquad P_1(x) = x
+$$
+
+$$
+P_k(x) =
+\frac{(2k-1)\,x\,P_{k-1}(x) - (k-1)\,P_{k-2}(x)}{k}
+$$
+
+We can see here how the implementation of additional of operators was required for the `AutoDiff` method to work, since the division and the subtraction operator are essential parts of the legendre polynomial.
+
+```cpp 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include "autodiff.hpp"
+#include "legendre.hpp"
+
+using ASC_ode::AutoDiff;
+
+int main() {
+    const int N = 5;
+
+    std::ofstream file("../results/legendre_output.csv");
+    file << "x";
+    for (int i = 0; i <= N; i++) file << ",P" << i << ",dP" << i;
+    file << "\n";
+
+    for (double t = -1.0; t <= 1.0; t += 0.01) {
+
+        AutoDiff<1,double> x(t);
+        x.deriv()[0] = 1.0;
+
+        std::vector<AutoDiff<1,double>> P;
+        LegendrePolynomials(N, x, P);
+
+        file << t;
+        for (int i = 0; i <= N; i++)
+            file << "," << P[i].value() << "," << P[i].deriv()[0];
+        file << "\n";
+    }
+
+    std::cout << "Wrote legendre_output.csv (polynomials + derivatives)\n";
+    return 0;
+}
+```
+In the main program, each sample point $ x \in [-1,1] $ is represented as an `AutoDiff` variable with its derivative initialized to one. Passing this variable into the Legendre routine ensures that both $ P_k(x) $ and $ \frac{dP_k}{dx} $ are computed automatically through the recurrence. The LegendrePolynomials function then computes both the polynomial values and their exact derivatives at that point.
+
+---
+
+# Results
+
+<img src="../results/legendre_output.png">
+
+The first plot shows the Legendre polynomials $P_0$ through $P_5$. The higher order Polynomials exhibit increasing oscillatory behavior. They also all satisfy the boundary condition $P_n(1) = 1$. The overall symmetry properties are clearly visible: even polynomials are symmetric, whereas odd polynomials are asymmetric.
+
+<img src="../results/legendre_output_derivative.png">
+
+The second plot shows the corresponding derivatives. Since differentiation lowers the polynomial degree by one, the derivative curves display fewer zero crossings and opposite parity: the derivative of an even Legendre polynomial is odd and vice versa.
+
+Together, the two plots illustrate the structure of Legendre polynomials and demonstrate the effectiveness of automatic differentiation in propagating exact derivatives through a recursive definition.
+
+## Testing of the AutoDiff Class for the Pendulum
+
+### 1. Mathematical Model
+The motion of a simple pendulum is described by the nonlinear second-order differential equation
+
+$$
+\ddot{\alpha}(t) + \frac{g}{L}\sin(\alpha(t)) = 0,
+$$
+
+where $\alpha(t)$ is the angular displacement, $L$ the length of the pendulum, and $g$ the gravitational acceleration.
+
+### 2. Transformation to Autonomous Form
+To apply standard ODE solvers, the equation is rewritten as a first-order system. Introducing the angular velocity
+
+$$
+\beta = \dot{\alpha},
+$$
+
+we obtain the autonomous system
+
+$$
+\dot{\alpha} = \beta, \qquad
+\dot{\beta} = -\frac{g}{L}\sin(\alpha).
+$$
+
+The right-hand side depends only on $\alpha$ and $\beta$, so the system is written in autonomous form.
+
+
+### 3. Automatic Differentiation
+Automatic differentiation is used to compute the derivatives needed for the Jacobian of the system. In automatic differentiation, each intermediate quantity carries both a value and its gradient. During computation, standard differentiation rules (product rule, chain rule, etc.) are applied automatically. This avoids choosing a finite-difference step size and yields derivative values that are exact up to machine precision.
+
+### 4. Testing
+
+To test the implementation of the pendulum model and the automatic differentiation mechanism, we wrote a simple `main` function that evaluates both the right-hand side of the ODE and its Jacobian at a chosen test point. We chose a pendulum with $L = 1.0$ and $g = 9.81$, and evaluated the system at
+
+$$
+\alpha = 0.5, \qquad \dot{\alpha} = 0.0.
+$$
+
+The program output is:
+
+```
+x = (0.5, 0)
+f(x) = (0, -4.70316)
+
+Df(x):
+0 1
+-8.60908 0
+```
+
+The value  
+$\dot{\beta} = -\frac{g}{L}\sin(0.5) \approx -4.70316$  
+matches the expected model.  
+The Jacobian agrees with the analytical expression
+
+$$
+Df(\alpha,\beta) =
+\begin{pmatrix}
+0 & 1 \\
+-\frac{g}{L}\cos(\alpha) & 0
+\end{pmatrix},
+$$
+
+since  
+$-\frac{g}{L}\cos(0.5) \approx -8.60908$.
+
+The agreement between the computed and theoretical values confirms that the automatic differentiation is working correctly and produces the expected derivatives.
+
+---
+
+### 5. Code
+
+```cpp
+
+#include <iostream>
+#include <cmath> 
+#include <autodiff.hpp>
+#include <nonlinfunc.hpp>
+
+using namespace ASC_ode;
+
+class PendulumAD : public NonlinearFunction
+{
+private:
+  double m_length;
+  double m_gravity;
+
+public:
+  PendulumAD(double length, double gravity=9.81) : m_length(length), m_gravity(gravity) {}
+
+  size_t dimX() const override { return 2; }
+  size_t dimF() const override { return 2; }
+  
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
+  {
+    T_evaluate<double>(x, f);
+  }
+
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  {
+    Vector<AutoDiff<2>> x_ad(2);
+    Vector<AutoDiff<2>> f_ad(2);
+
+    x_ad(0) = Variable<0>(x(0));
+    x_ad(1) = Variable<1>(x(1));
+    T_evaluate<AutoDiff<2>>(x_ad, f_ad);
+
+    for (size_t i = 0; i < 2; i++)
+      for (size_t j = 0; j < 2; j++)
+         df(i,j) = f_ad(i).deriv()[j];
+  }
+
+template <typename T>
+void T_evaluate (VectorView<T> x, VectorView<T> f) const
+{
+    f(0) = x(1);
+    T c = -m_gravity / m_length;
+    f(1) = c * sin(x(0));
+}
+};
+
+
+int main()
+{
+    double length  = 1.0;
+    double gravity = 9.81;
+
+    PendulumAD pend(length, gravity);
+
+    double alpha     = 0.5;
+    double alpha_dot = 0.0;
+
+    Vector<double> x(2);
+    Vector<double> f(2);
+
+    x(0) = alpha;
+    x(1) = alpha_dot;
+
+    pend.evaluate(x, f);
+
+    std::cout << "x = (" << x(0) << ", " << x(1) << ")\n";
+    std::cout << "f(x) = (" << f(0) << ", " << f(1) << ")\n";
+
+    Matrix<double> df(2,2);
+    pend.evaluateDeriv(x, df);
+
+    std::cout << "Df(x):\n";
+    std::cout << df(0,0) << "  " << df(0,1) << "\n";
+    std::cout << df(1,0) << "  " << df(1,1) << "\n";
+
+    return 0;
+}
+
+````
+# Runge Kutta Methods
+
+## Exercise 19.4
+
+### Testing of Implicit Runge-Kutta Methods
+
+The Implicit Runge-Kutta Methods utilize the `NewtonSolver` to solve a nonlinear system to calculate the next step. They all showcase both A stability, where increasing $τ$ will not blow up the solution. The Gauss methods preserve the energy of the system while the Radau method introduces dampening.
+Both methods are computationally more expensive than the Explicit Methods due to the Jacobian.
+
+
+#### Graphs
+
+<img src="../results/rungekuttagraphs/implicit_error.png">
+
+<img src="../results/rungekuttagraphs/implicit_phase.png">
+
+<img src="../results/rungekuttagraphs/implicit_time.png">
+
+#### Conclusion
+
+The Gauss2, Gauss3, and Radau IIA are all high order with Gauss-Legendre being $2s$ where $s$ is the number of stages, and Radau being $2s-1$. This meant that the global errors were very small compared to the amplitutde, which is shown with the graphs overlapping almost perfectly. When zooming in, some differences can be noted but the differences is very small. These differences would be greater if the time steps became larger, or over a much longer time.
+
+### Implementation of Explicit Runge-Kutta Method
+
+The explicit Runge-Kutta Method was implemented in a class `ExplicitRungeKutta` which was able to store a general lower-triangular Butcher matrix `A` and vectors `b` and `c`.
+
+This was then implemented wit the RK2 Method, the RK4 method and the Nyström method.
+
+#### Graphs
+
+<img src="../results/rungekuttagraphs/explicit_error.png">
+
+<img src="../results/rungekuttagraphs/explicit_phase.png">
+
+<img src="../results/rungekuttagraphs/explicit_time.png">
+
+#### Conclusion
+
+The results showed that as the order increased, the Methods became more accurate with a smaller deviation from the Analytic Solution. They also showed that the answers were all more similar at the beginning and that the deviations were larger at the end. The order of accuracy also scaled with what order so the `RK2`  method had the largest error. The Nyström method had an error very similar to the implicit methods, so very low, but it alos is the most expensive per step. They are explicit methods, which means they are conditionally stable and as the step size increases they will eventually lose accuract and stability.
