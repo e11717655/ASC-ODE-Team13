@@ -305,3 +305,195 @@ The Crank-Nicholson Method is energy preserving, therefore the oscillations will
 
 
 For τ = 100000, the numerical time evolution is smooth and closely matches the expected sinusoidal behavior.  This demonstrates the expected convergence behavior of the integrators: as τ decreases, the numerical error shrinks at the rate predicted by the theoretical order of the method.
+
+
+# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 2
+<img src="../docs/image.png" width="350px">
+
+## Exercise Report: Electric Network Simulation
+
+### 1. Mathematical Model
+
+We model a simple RC circuit consisting of a resistor $R$, a capacitor $C$, and a time-dependent voltage source $U_0(t) = \cos(100 \pi t)$.
+
+Using Ohm's law ($U_R = R I$) and the capacitor equation ($I = C \dot{U}_C$), we apply Kirchhoff's voltage law, which states that voltages around a loop sum to zero ($U_0 = U_R + U_C$). This yields the linear Ordinary Differential Equation (ODE):
+
+$$U_C(t) + RC \frac{dU_C}{dt}(t) = U_0(t)$$
+
+Rearranging for the derivative, we obtain the standard non-autonomous form $\dot{y} = f(t, y)$:
+
+$$\frac{dU_C}{dt} = \frac{U_0(t) - U_C(t)}{RC} = \frac{\cos(100 \pi t) - U_C}{RC}$$
+
+### 2. Transformation to Autonomous Form
+
+To utilize numerical solvers designed for autonomous systems ($\dot{\mathbf{y}} = F(\mathbf{y})$), we must eliminate the explicit time dependence. We achieve this by extending the state space to treat time as a dependent variable.
+
+We define a new state vector $\mathbf{y} \in \mathbb{R}^2$:
+
+* $y_1 = U_C$ (Capacitor Voltage)
+* $y_2 = t$ (Time)
+
+The derivatives are formulated as follows:
+
+* **Voltage:** $\dot{y}_1 = \frac{U_0(y_2) - y_1}{RC}$
+* **Time:** $\dot{y}_2 = \frac{dt}{dt} = 1$
+
+This results in the following autonomous system:
+
+$$\dot{\mathbf{y}} = \begin{pmatrix} \frac{\cos(100 \pi y_2) - y_1}{RC} \\ 1 \end{pmatrix}$$
+
+### 3. Jacobian for Implicit Methods
+
+For the implementation of implicit solvers (Implicit Euler, Crank-Nicolson), the Jacobian matrix $J = \frac{\partial F}{\partial \mathbf{y}}$ is required. Differentiating the system vector with respect to $y_1$ and $y_2$:
+
+$$J = \begin{pmatrix} 
+\frac{\partial \dot{y}_1}{\partial y_1} & \frac{\partial \dot{y}_1}{\partial y_2} \\
+\frac{\partial \dot{y}_2}{\partial y_1} & \frac{\partial \dot{y}_2}{\partial y_2}
+\end{pmatrix} = 
+\begin{pmatrix} 
+-\frac{1}{RC} & -\frac{100 \pi \sin(100 \pi y_2)}{RC} \\
+0 & 0
+\end{pmatrix}$$
+
+The simulation uses this system with initial conditions $\mathbf{y}(0) = [0, 0]^T$.
+
+### 4. Setup
+
+When running the code 3 different stepping sizes have been used. $N = \{100, 1000, 10000\}$. And the two different model parameters $R=1, C=1$ and $R=100, C=10^{-6}$. As a total time 0.1 seconds were choosen. The results displayed in graphs can be found below. For each step size the resulting Capacity Voltage has been plotted for the 3 numerical methods: The explicit Euler, the implicit Euler and the Crank-Nicolson. The input voltage has been scaled to the the size of the capacity voltage, so that the phase shift can be nicely seen.
+
+**Simulation Results**
+
+<img src="../results/Electrical_Circuit/circuit_plot_100_1.png" width="350px"> 
+
+*Plot for 100 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_1000_1.png" width="350px">
+
+*Plot for 1000 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_10000_1.png" width="350px">
+
+*Plot for 10000 time steps and $R=1, C=1$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_100_1.png" width="350px"> 
+
+*Plot for 100 time steps and $R=100, C=10^{-6}$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_1000_1.png" width="350px">
+
+*Plot for 1000 time steps and $R=100, C=10^{-6}$*
+
+<img src="../results/Electrical_Circuit/circuit_plot_10000_1.png" width="350px">
+
+*Plot for 10000 time steps and $R=100, C=10^{-6}$*
+
+---
+
+## Analysis of Simulation Results
+
+### Part 1: ($R=100, C=10^{-6}$)
+
+**1. Stiffness & Stability Limits**
+
+The system is stiff, characterized by a fast time constant $\tau = RC = 10^{-4}s$ and a large negative eigenvalue $\lambda = -10000$.
+
+* **Explicit Euler Stability Condition:** $|1 + \lambda \Delta t| \le 1$.
+    For this system, stability requires $\Delta t \le 2 \cdot 10^{-4}s$.
+* **Implicit Method Stability:** Implicit Euler and Crank-Nicolson are A-stable, meaning they remain stable for any step size $\Delta t$, regardless of $\tau$.
+
+**2. Method Behavior**
+
+* **Explicit Euler**
+    * **100 Steps ($\Delta t = 10\tau$):** Violates the stability condition ($10\tau > 2\tau$). The solution explodes immediately, reaching physically impossible values ($10^{57}$).
+    * **1000 Steps ($\Delta t = \tau$):** Stable. Because $\Delta t = \tau$, the derivative projection lands exactly on the steady-state value in a single step (jumping from 0 to 1 instantly).
+
+* **Implicit Euler**
+    * **Stable but Damped:** Even with large steps ($10\tau$), the solution never explodes. However, it exhibits numerical damping, causing the voltage to lag behind the rapid initial changes.
+
+* **Crank-Nicolson**
+    * **Stable but Oscillatory:** Also stable for large steps ($10\tau$). However, it suffers from spurious oscillations (overshoot $>1$) during the initial transient because it averages the derivatives at $t_n$ and $t_{n+1}$, struggling to resolve the fast charge-up.
+
+### Part 2: System ($R=1, C=1$)
+
+**1. System Characteristics**
+
+With the new parameters, the system dynamics change drastically:
+
+* Time Constant: $\tau = RC = 1 \, s$.
+* Eigenvalue: $\lambda = -1$.
+* Stability Limit (Explicit): $|1 - \Delta t| \le 1 \Rightarrow \Delta t \le 2 \, s$.
+
+This system is non-stiff because the time constant ($\tau=1$) is much slower than the simulation time steps used ($10^{-3}$ to $10^{-5}$).
+
+**2. Stability Analysis**
+
+Unlike the previous case, all methods are stable for all step sizes tested.
+The largest step size used is $\Delta t = 0.001 \, s$.
+Since $0.001 \ll 2$ (the stability limit), Explicit Euler is well within its stability region.
+*Observation:* No explosions or wild oscillations are observed.
+
+**3. Physical Behavior: Low-Pass Filtering & Phase Shift**
+
+The circuit acts as a strong low-pass filter with significant phase lag.
+
+* **Amplitude Attenuation:**
+    Since the source frequency $\omega = 100\pi \approx 314$ rad/s is much higher than the cutoff $\omega_c = 1$ rad/s, the amplitude is attenuated by a factor of $\approx 1/314$. The data shows peaks around $0.003$V, matching this theory.
+
+* **Phase Shift ($\phi$):**
+    The theoretical phase shift is $\phi = -\arctan(\omega RC) = -\arctan(314) \approx -89.8^\circ$.
+
+* **Observation in Data:**
+    The voltage should lag the source by almost exactly $90^\circ$ ($\pi/2$), which corresponds to a time lag of $0.005s$ (quarter period). Looking at the graphs the capacitor voltage behaves like a Sine wave while the source is a Cosine wave, demonstrating the predicted $90^\circ$ lag.
+
+### Comparison of Methods
+
+Because the step sizes are small relative to the system time constant ($\Delta t \ll \tau$), the numerical errors are small for all methods.
+
+* **Amplitude Discrepancy (Low N):** At the coarsest resolution (100 steps), there is a distinct difference in amplitude due to numerical error properties.
+    * Explicit Euler overestimates the peak ($\approx 0.0036$V).
+    * Crank-Nicolson sits in the middle ($\approx 0.0031$V).
+    * Implicit Euler is the most damped and underestimates the peak ($\approx 0.0026$V).
+    * *Reason:* This occurs because Explicit Euler extrapolates linearly (overshooting convex curves), while Implicit Euler is numerically dissipative.
+
+* **Resolution:** Even the coarsest resolution (100 steps, $\Delta t = 0.001$) provides $\sim 20$ points per period of the source ($T=0.02s$), sufficient to capture the general wave shape, though the amplitude accuracy varies by method as noted above.
+
+### Summary Comparison
+
+| Parameter Set | Time Constant $\tau$ | System Type | Explicit Euler (100 steps) | Physical Outcome |
+| :--- | :--- | :--- | :--- | :--- |
+| **Set 1 ($R=100, C=10^{-6}$)** | $10^{-4} s$ | Stiff | Unstable (Explodes) | Fast charge (tracks source) |
+| **Set 2 ($R=1, C=1$)** | $1 s$ | Non-Stiff | Stable | Filtered (Low amp, $90^\circ$ lag) |
+
+## Code
+
+```cpp
+class ElectricNetwork : public NonlinearFunction
+{
+private:
+  double R;
+  double C; 
+
+public:
+  ElectricNetwork(double r, double c) : R(r), C(c) {}
+
+  size_t dimX() const override { return 2; }
+  size_t dimF() const override { return 2; }
+
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
+  {
+    double Uc = x(0);
+    double t  = x(1);
+    f(0) = (std::cos(100.0 * M_PI * t) - Uc) / (R * C);
+    f(1) = 1.0;
+  }
+
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  {
+    double t = x(1);
+    df = 0.0;
+    df(0,0) = -1.0 / (R * C);
+    df(0,1) = -(100.0 * M_PI) * std::sin(100.0 * M_PI * t) / (R * C);
+    df(1,0) = 0.0;
+    df(1,1) = 0.0;
+  }
+};
