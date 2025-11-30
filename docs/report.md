@@ -1,4 +1,4 @@
-# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises Part 1
+# NSSC1 Numerical Methods for Ordinary Differential Equations Exercises
 
 For this exercise, we compared several different time-stepping methods for a mass attached to a spring, this is described by the ODE:
 
@@ -499,6 +499,238 @@ public:
 };
 ```
 
+# Exercise 18.4
+
+We can use automatic differentiation to compute the derivative of a function.  
+In the first part of this exercise, we had to implement additional operators and functions for the `AutoDiff` class.
+
+---
+
+## Subtraction
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> operator- (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+{
+    AutoDiff<N, T> result(a.value() - b.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] - b.deriv()[i];
+    return result;
+}
+```
+
+The subtraction operator implements element-wise differentiation of the expression  
+$ a - b $. Because subtraction is linear, the derivative of the result is simply the difference of the individual derivatives, making this operator straightforward to implement.
+
+---
+
+## Division
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> operator/ (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+{
+    AutoDiff<N, T> result(a.value() / b.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] =
+            (a.deriv()[i] * b.value() - a.value() * b.deriv()[i]) /
+            (b.value() * b.value());
+    return result;
+}
+```
+
+The division operator computes both the value and derivative of the quotient $\frac{a}{b}\$ using the quotient rule:
+
+$$ \frac{d}{dx_i}\!\left(\frac{a}{b}\right) = \frac{a_i' \, b - a\, b_i'}{b^2} $$
+
+This allows automatic differentiation to propagate derivatives correctly through division.
+
+These operators enable the evaluation and plotting of derivatives of the Legendre polynomials later in the exercise.
+
+---
+
+# Additional AutoDiff Functions
+
+Below are the functions added to extend the mathematical capabilities of the `AutoDiff` class.
+
+---
+
+## Square
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> square(const AutoDiff<N, T>& a)
+{
+    AutoDiff<N, T> result(a.value() * a.value());
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = T(2) * a.value() * a.deriv()[i];
+    return result;
+}
+```
+
+This function computes $ a^2 $ and uses the derivative  
+$ \frac{d}{dx}(a^2) = 2a\,a' $.  
+It demonstrates how simple nonlinear operations can be expressed through the product rule.
+
+---
+
+## Square Root
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> sqrt(const AutoDiff<N, T>& a)
+{
+    T val = std::sqrt(a.value());
+    AutoDiff<N, T> result(val);
+
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] / (T(2) * val);
+
+    return result;
+}
+```
+
+The square root uses the derivative identity  
+$ \frac{d}{dx}\sqrt{a} = \frac{a'}{2\sqrt{a}} $
+
+
+---
+
+## Cosine
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> cos(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(cos(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = -sin(a.value()) * a.deriv()[i];
+    return result;
+}
+```
+
+---
+
+## Tangent
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> tan(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(tan(a.value()));
+    T sec2 = 1 / (cos(a.value()) * cos(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = sec2 * a.deriv()[i];
+    return result;
+}
+```
+Both the tan function and the cosine function were implemented practically identical to the sine function.
+
+---
+
+## Logarithm
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> log(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(log(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = a.deriv()[i] / a.value();
+    return result;
+}
+```
+
+The natural logarithm uses  
+$ \frac{d}{dx}\log(a) = \frac{a'}{a} $
+
+---
+
+## Exponential
+
+```cpp
+template <size_t N, typename T = double>
+AutoDiff<N, T> exp(const AutoDiff<N, T> &a)
+{
+    AutoDiff<N, T> result(exp(a.value()));
+    for (size_t i = 0; i < N; i++)
+        result.deriv()[i] = result.value() * a.deriv()[i];
+    return result;
+}
+```
+
+The exponential function follows  
+$
+\frac{d}{dx} e^{a} = e^{a}\, a'
+$.  
+
+---
+
+# Legendre Polynomials
+
+To evaluate Legendre polynomials and their derivatives up to order 5, we implemented a templated function `LegendrePolynomials` based on the standard recurrence relation
+
+$$
+P_0(x) = 1, \qquad P_1(x) = x
+$$
+
+$$
+P_k(x) =
+\frac{(2k-1)\,x\,P_{k-1}(x) - (k-1)\,P_{k-2}(x)}{k}
+$$
+
+We can see here how the implementation of additional of operators was required for the `AutoDiff` method to work, since the division and the subtraction operator are essential parts of the legendre polynomial.
+
+```cpp 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include "autodiff.hpp"
+#include "legendre.hpp"
+
+using ASC_ode::AutoDiff;
+
+int main() {
+    const int N = 5;
+
+    std::ofstream file("../results/legendre_output.csv");
+    file << "x";
+    for (int i = 0; i <= N; i++) file << ",P" << i << ",dP" << i;
+    file << "\n";
+
+    for (double t = -1.0; t <= 1.0; t += 0.01) {
+
+        AutoDiff<1,double> x(t);
+        x.deriv()[0] = 1.0;
+
+        std::vector<AutoDiff<1,double>> P;
+        LegendrePolynomials(N, x, P);
+
+        file << t;
+        for (int i = 0; i <= N; i++)
+            file << "," << P[i].value() << "," << P[i].deriv()[0];
+        file << "\n";
+    }
+
+    std::cout << "Wrote legendre_output.csv (polynomials + derivatives)\n";
+    return 0;
+}
+```
+In the main program, each sample point $ x \in [-1,1] $ is represented as an `AutoDiff` variable with its derivative initialized to one. Passing this variable into the Legendre routine ensures that both $ P_k(x) $ and $ \frac{dP_k}{dx} $ are computed automatically through the recurrence. The LegendrePolynomials function then computes both the polynomial values and their exact derivatives at that point.
+
+---
+
+# Results
+
+<img src="../results/legendre_output.png">
+
+The first plot shows the Legendre polynomials $P_0$ through $P_5$. The higher order Polynomials exhibit increasing oscillatory behavior. They also all satisfy the boundary condition $P_n(1) = 1$. The overall symmetry properties are clearly visible: even polynomials are symmetric, whereas odd polynomials are asymmetric.
+
+<img src="../results/legendre_output_derivative.png">
+
+The second plot shows the corresponding derivatives. Since differentiation lowers the polynomial degree by one, the derivative curves display fewer zero crossings and opposite parity: the derivative of an even Legendre polynomial is odd and vice versa.
+
+Together, the two plots illustrate the structure of Legendre polynomials and demonstrate the effectiveness of automatic differentiation in propagating exact derivatives through a recursive definition.
 
 ## Testing of the AutoDiff Class for the Pendulum
 
@@ -654,3 +886,42 @@ int main()
 }
 
 ````
+# Runge Kutta Methods
+
+## Exercise 19.4
+
+### Testing of Implicit Runge-Kutta Methods
+
+The Implicit Runge-Kutta Methods utilize the `NewtonSolver` to solve a nonlinear system to calculate the next step. They all showcase both A stability, where increasing $τ$ will not blow up the solution. The Gauss methods preserve the energy of the system while the Radau method introduces dampening.
+Both methods are computationally more expensive than the Explicit Methods due to the Jacobian.
+
+
+#### Graphs
+
+<img src="../results/rungekuttagraphs/implicit_error.png">
+
+<img src="../results/rungekuttagraphs/implicit_phase.png">
+
+<img src="../results/rungekuttagraphs/implicit_time.png">
+
+#### Conclusion
+
+The Gauss2, Gauss3, and Radau IIA are all high order with Gauss-Legendre being $2s$ where $s$ is the number of stages, and Radau being $2s-1$. This meant that the global errors were very small compared to the amplitutde, which is shown with the graphs overlapping almost perfectly. When zooming in, some differences can be noted but the differences is very small. These differences would be greater if the time steps became larger, or over a much longer time.
+
+### Implementation of Explicit Runge-Kutta Method
+
+The explicit Runge-Kutta Method was implemented in a class `ExplicitRungeKutta` which was able to store a general lower-triangular Butcher matrix `A` and vectors `b` and `c`.
+
+This was then implemented wit the RK2 Method, the RK4 method and the Nyström method.
+
+#### Graphs
+
+<img src="../results/rungekuttagraphs/explicit_error.png">
+
+<img src="../results/rungekuttagraphs/explicit_phase.png">
+
+<img src="../results/rungekuttagraphs/explicit_time.png">
+
+#### Conclusion
+
+The results showed that as the order increased, the Methods became more accurate with a smaller deviation from the Analytic Solution. They also showed that the answers were all more similar at the beginning and that the deviations were larger at the end. The order of accuracy also scaled with what order so the `RK2`  method had the largest error. The Nyström method had an error very similar to the implicit methods, so very low, but it alos is the most expensive per step. They are explicit methods, which means they are conditionally stable and as the step size increases they will eventually lose accuract and stability.
