@@ -497,3 +497,165 @@ public:
     df(1,1) = 0.0;
   }
 };
+```
+
+
+## Testing of the AutoDiff Class for the Pendulum
+
+### 1. Mathematical Model
+The motion of a simple pendulum is governed by the nonlinear second-order differential equation
+
+\[
+\ddot{\alpha}(t) + \frac{g}{L}\sin(\alpha(t)) = 0,
+\]
+
+where \(\alpha(t)\) is the angular displacement, \(L\) is the pendulum length, and \(g\) is gravitational acceleration. 
+
+### 2. Transformation to Autonomous Form
+To work with standard ODE solvers, the second-order equation is rewritten into two first-order equations. Introducing the angular velocity
+
+\[
+\beta = \dot{\alpha},
+\]
+
+the system becomes
+
+\[
+\dot{\alpha} = \beta, \qquad
+\dot{\beta} = -\frac{g}{L}\sin(\alpha).
+\]
+
+These equations depend only on the variables \(\alpha\) and \(\beta\), not explicitly on time. Therefore, the pendulum is expressed in **autonomous form**.
+
+### 3. Automatic Differentiation
+Automatic differentiation is used to compute the derivatives needed for the Jacobian of the system. In automatic differentiation, each intermediate quantity carries both a value and its gradient. During computation, standard differentiation rules (product rule, chain rule, etc.) are applied automatically. This avoids choosing a finite-difference step size and yields derivative values that are exact up to machine precision.
+
+### 4. Testing
+
+To test the implementation of the pendulum model and the automatic differentiation mechanism, we wrote a simple `main` function that evaluates both the right-hand side of the ODE and its Jacobian at a chosen test point. We selected a pendulum of length \(L = 1.0\) and gravitational acceleration \(g = 9.81\). For the state variables, we used
+
+\[
+\alpha = 0.5, \qquad \dot{\alpha} = 0.0,
+\]
+
+representing a angular displacement without initial velocity.
+
+First, we called `evaluate` to compute the function value \(f(x)\). The program prints:
+x = (0.5, 0)
+f(x) = (0, -4.70316)
+
+This output is consistent with the mathematical model:  
+- \(\dot{\alpha} = \dot{\alpha} = 0\),  
+- \(\dot{\beta} = -\frac{g}{L}\sin(0.5) \approx -4.70316\).
+
+Next, we tested the derivative evaluation using `evaluateDeriv`. The corresponding Jacobian matrix printed by the program is:
+
+Df(x):
+0 1
+-8.60908 0
+
+
+This matches the analytical Jacobian of the pendulum system,
+
+\[
+Df(\alpha,\beta) =
+\begin{pmatrix}
+0 & 1 \\
+-\frac{g}{L}\cos(\alpha) & 0
+\end{pmatrix},
+\]
+
+and indeed
+
+\[
+-\frac{g}{L}\cos(0.5) \approx -8.60908.
+\]
+
+The agreement between the computed and theoretical values confirms that the automatic differentiation is working correctly, producing accurate derivatives without requiring manual differentiation or numerical approximations.
+
+---
+
+### 5. Code
+
+```cpp
+
+#include <iostream>
+#include <cmath> 
+#include <autodiff.hpp>
+#include <nonlinfunc.hpp>
+
+using namespace ASC_ode;
+
+class PendulumAD : public NonlinearFunction
+{
+private:
+  double m_length;
+  double m_gravity;
+
+public:
+  PendulumAD(double length, double gravity=9.81) : m_length(length), m_gravity(gravity) {}
+
+  size_t dimX() const override { return 2; }
+  size_t dimF() const override { return 2; }
+  
+  void evaluate (VectorView<double> x, VectorView<double> f) const override
+  {
+    T_evaluate<double>(x, f);
+  }
+
+  void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+  {
+    Vector<AutoDiff<2>> x_ad(2);
+    Vector<AutoDiff<2>> f_ad(2);
+
+    x_ad(0) = Variable<0>(x(0));
+    x_ad(1) = Variable<1>(x(1));
+    T_evaluate<AutoDiff<2>>(x_ad, f_ad);
+
+    for (size_t i = 0; i < 2; i++)
+      for (size_t j = 0; j < 2; j++)
+         df(i,j) = f_ad(i).deriv()[j];
+  }
+
+template <typename T>
+void T_evaluate (VectorView<T> x, VectorView<T> f) const
+{
+    f(0) = x(1);
+    T c = -m_gravity / m_length;
+    f(1) = c * sin(x(0));
+}
+};
+
+
+int main()
+{
+    double length  = 1.0;
+    double gravity = 9.81;
+
+    PendulumAD pend(length, gravity);
+
+    double alpha     = 0.5;
+    double alpha_dot = 0.0;
+
+    Vector<double> x(2);
+    Vector<double> f(2);
+
+    x(0) = alpha;
+    x(1) = alpha_dot;
+
+    pend.evaluate(x, f);
+
+    std::cout << "x = (" << x(0) << ", " << x(1) << ")\n";
+    std::cout << "f(x) = (" << f(0) << ", " << f(1) << ")\n";
+
+    Matrix<double> df(2,2);
+    pend.evaluateDeriv(x, df);
+
+    std::cout << "Df(x):\n";
+    std::cout << df(0,0) << "  " << df(0,1) << "\n";
+    std::cout << df(1,0) << "  " << df(1,1) << "\n";
+
+    return 0;
+}
+
+````

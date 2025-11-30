@@ -1,5 +1,7 @@
 #include <iostream>
+#include <cmath> 
 #include <autodiff.hpp>
+#include <nonlinfunc.hpp>
 
 using namespace ASC_ode;
 
@@ -34,20 +36,15 @@ public:
          df(i,j) = f_ad(i).deriv()[j];
   }
 
-  template <typename T>
-  void T_evaluate (VectorView<T> x, VectorView<T> f) const
-
-  {
+template <typename T>
+void T_evaluate (VectorView<T> x, VectorView<T> f) const
+{
     f(0) = x(1);
-    f(1) = -m_gravity/m_length*sin(x(0));
-  }
+    T c = -m_gravity / m_length;
+    f(1) = c * sin(x(0));
+}
 };
 
-
-#include <iostream>
-#include <autodiff.hpp>
-
-using namespace ASC_ode;
 
 int main()
 {
