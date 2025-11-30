@@ -503,75 +503,70 @@ public:
 ## Testing of the AutoDiff Class for the Pendulum
 
 ### 1. Mathematical Model
-The motion of a simple pendulum is governed by the nonlinear second-order differential equation
+The motion of a simple pendulum is described by the nonlinear second-order differential equation
 
-\[
+$$
 \ddot{\alpha}(t) + \frac{g}{L}\sin(\alpha(t)) = 0,
-\]
+$$
 
-where \(\alpha(t)\) is the angular displacement, \(L\) is the pendulum length, and \(g\) is gravitational acceleration. 
+where $\alpha(t)$ is the angular displacement, $L$ the length of the pendulum, and $g$ the gravitational acceleration.
 
 ### 2. Transformation to Autonomous Form
-To work with standard ODE solvers, the second-order equation is rewritten into two first-order equations. Introducing the angular velocity
+To apply standard ODE solvers, the equation is rewritten as a first-order system. Introducing the angular velocity
 
-\[
+$$
 \beta = \dot{\alpha},
-\]
+$$
 
-the system becomes
+we obtain the autonomous system
 
-\[
+$$
 \dot{\alpha} = \beta, \qquad
 \dot{\beta} = -\frac{g}{L}\sin(\alpha).
-\]
+$$
 
-These equations depend only on the variables \(\alpha\) and \(\beta\), not explicitly on time. Therefore, the pendulum is expressed in **autonomous form**.
+The right-hand side depends only on $\alpha$ and $\beta$, so the system is written in autonomous form.
+
 
 ### 3. Automatic Differentiation
 Automatic differentiation is used to compute the derivatives needed for the Jacobian of the system. In automatic differentiation, each intermediate quantity carries both a value and its gradient. During computation, standard differentiation rules (product rule, chain rule, etc.) are applied automatically. This avoids choosing a finite-difference step size and yields derivative values that are exact up to machine precision.
 
 ### 4. Testing
 
-To test the implementation of the pendulum model and the automatic differentiation mechanism, we wrote a simple `main` function that evaluates both the right-hand side of the ODE and its Jacobian at a chosen test point. We selected a pendulum of length \(L = 1.0\) and gravitational acceleration \(g = 9.81\). For the state variables, we used
+To test the implementation of the pendulum model and the automatic differentiation mechanism, we wrote a simple `main` function that evaluates both the right-hand side of the ODE and its Jacobian at a chosen test point. We chose a pendulum with $L = 1.0$ and $g = 9.81$, and evaluated the system at
 
-\[
-\alpha = 0.5, \qquad \dot{\alpha} = 0.0,
-\]
+$$
+\alpha = 0.5, \qquad \dot{\alpha} = 0.0.
+$$
 
-representing a angular displacement without initial velocity.
+The program output is:
 
-First, we called `evaluate` to compute the function value \(f(x)\). The program prints:
+```
 x = (0.5, 0)
 f(x) = (0, -4.70316)
-
-This output is consistent with the mathematical model:  
-- \(\dot{\alpha} = \dot{\alpha} = 0\),  
-- \(\dot{\beta} = -\frac{g}{L}\sin(0.5) \approx -4.70316\).
-
-Next, we tested the derivative evaluation using `evaluateDeriv`. The corresponding Jacobian matrix printed by the program is:
 
 Df(x):
 0 1
 -8.60908 0
+```
 
+The value  
+$\dot{\beta} = -\frac{g}{L}\sin(0.5) \approx -4.70316$  
+matches the expected model.  
+The Jacobian agrees with the analytical expression
 
-This matches the analytical Jacobian of the pendulum system,
-
-\[
+$$
 Df(\alpha,\beta) =
 \begin{pmatrix}
 0 & 1 \\
 -\frac{g}{L}\cos(\alpha) & 0
 \end{pmatrix},
-\]
+$$
 
-and indeed
+since  
+$-\frac{g}{L}\cos(0.5) \approx -8.60908$.
 
-\[
--\frac{g}{L}\cos(0.5) \approx -8.60908.
-\]
-
-The agreement between the computed and theoretical values confirms that the automatic differentiation is working correctly, producing accurate derivatives without requiring manual differentiation or numerical approximations.
+The agreement between the computed and theoretical values confirms that the automatic differentiation is working correctly and produces the expected derivatives.
 
 ---
 
