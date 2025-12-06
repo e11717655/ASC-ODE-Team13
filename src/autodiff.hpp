@@ -1,3 +1,4 @@
+#include <cmath>
 #ifndef AUTODIFF_HPP
 #define AUTODIFF_HPP
 
