@@ -61,7 +61,7 @@ namespace ASC_ode
   public:
     ImprovedEuler(std::shared_ptr<NonlinearFunction> rhs) 
     : TimeStepper(rhs), m_vecf(rhs->dimF()), halfway(rhs->dimX()) {}
-    void DoStep(double tau, VectorView<double> y) override
+    void doStep(double tau, VectorView<double> y) override
     {
       this->m_rhs->evaluate(y, m_vecf);
       halfway = y;
@@ -89,7 +89,7 @@ namespace ASC_ode
       m_equ = ynew - m_yold - 0.5 * (m_tau * (m_rhs + m_fold));
     }
 
-    void DoStep(double tau, VectorView<double> y) override
+    void doStep(double tau, VectorView<double> y) override
     {
       Vector<double> fy_val(y.size());
       m_rhs->evaluate(y, fy_val); 

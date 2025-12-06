@@ -26,7 +26,7 @@ namespace ASC_ode
               m_k(m_stages * m_n), m_ytmp(m_n)
         {
         }
-        void DoStep(double tau, VectorView<double> y) override
+        void doStep(double tau, VectorView<double> y) override
         {
             for (size_t i = 0; i < m_stages; i++)
             {
