@@ -14,20 +14,39 @@ int main()
 
   std::cout << "mss: " << std::endl << mss << std::endl;
 
-
-  double tend = 10;
+  double tend  = 10;
   double steps = 1000;
 
   Vector<> x(2*mss.masses().size());
   Vector<> dx(2*mss.masses().size());
   Vector<> ddx(2*mss.masses().size());
 
-  auto mss_func = std::make_shared<MSS_Function<2>> (mss);
+  mss.getState (x, dx, ddx);
+
+  // choose whether to use the constraint
+  bool use_constrained = true;   // set to false for the original unconstrained system
+
+  std::shared_ptr<NonlinearFunction> mss_func;
+
+  if (!use_constrained)
+  {
+    // Unconstrained: Ma = F
+    mss_func = std::make_shared<MSS_Function<2>>(mss);
+  }
+  else
+  {
+    // Constrained: distance between mass 0 and mass 1 is fixed to L0
+    double L0 = 1.0; // initial distance between (1,0) and (2,0), but can be adapted to desired fixed distance
+    static DistanceConstraint<2> constr(x.size(), /*massA=*/0, /*massB=*/1, L0);
+
+    mss_func = std::make_shared<MSS_Function<2>>(mss, constr);
+  }
+
   auto mass = std::make_shared<IdentityFunction> (x.size());
 
-  mss.getState (x, dx, ddx);
-  
   SolveODE_Newmark(tend, steps, x, dx,  mss_func, mass,
-                   [](double t, VectorView<double> x) { std::cout << "t = " << t
-                                                             << ", x = " << Vec<4>(x) << std::endl; });
+                   [](double t, VectorView<double> x) {
+                     std::cout << "t = " << t
+                               << ", x = " << Vec<4>(x) << std::endl;
+                   });
 }

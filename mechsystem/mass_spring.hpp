@@ -9,6 +9,8 @@ using namespace ASC_ode;
 #include <vector.hpp>
 using namespace nanoblas;
 
+#include <Eigen/Dense>
+
 template <int D>
 class Mass
 {
@@ -133,28 +135,110 @@ std::ostream &operator<<(std::ostream &ost, MassSpringSystem<D> &mss)
   return ost;
 }
 
+// Constraint: g(x) = 0, with Jacobian G(x) = ∂g/∂x
+class Constraint
+{
+public:
+  size_t ndof; // total DOFs = D * #masses
+  size_t ncon; // number of scalar constraints (m)
+
+  Constraint(size_t ndof_, size_t ncon_)
+      : ndof(ndof_), ncon(ncon_) {}
+
+  // g(x)
+  virtual void evaluateG(VectorView<double> x,
+                         VectorView<double> gx) const = 0;
+
+  // G(x) = ∂g/∂x
+  virtual void evaluateJacobian(VectorView<double> x,
+                                MatrixView<double> G) const = 0;
+
+  virtual ~Constraint() = default;
+};
+
+// Example: keep distance between mass A and B equal to L0
+template <int D>
+class DistanceConstraint : public Constraint
+{
+  size_t massA;
+  size_t massB;
+  double L0;
+
+public:
+  DistanceConstraint(size_t ndof, size_t _massA, size_t _massB, double _L0)
+      : Constraint(ndof, 1), massA(_massA), massB(_massB), L0(_L0) {}
+
+  virtual void evaluateG(VectorView<double> x,
+                         VectorView<double> gx) const override
+  {
+    gx = 0.0;
+
+    auto xmat = x.asMatrix(ndof / D, D); // rows = masses, cols = coordinates
+    Vec<D> pA = xmat.row(massA);
+    Vec<D> pB = xmat.row(massB);
+
+    Vec<D> diff = pA - pB;
+    double dist = norm(diff);
+    double dist2 = dist * dist; // ||pA - pB||^2
+
+    // g(x) = ||pA - pB||^2 - L0^2
+    gx(0) = dist2 - L0 * L0;
+  }
+
+  virtual void evaluateJacobian(VectorView<double> x,
+                                MatrixView<double> G) const override
+  {
+    G = 0.0;
+
+    auto xmat = x.asMatrix(ndof / D, D);
+    Vec<D> pA = xmat.row(massA);
+    Vec<D> pB = xmat.row(massB);
+    Vec<D> diff = pA - pB;
+
+    // ∂g/∂pA = 2 diff, ∂g/∂pB = -2 diff
+    for (int d = 0; d < D; ++d)
+    {
+      size_t colA = massA * D + d;
+      size_t colB = massB * D + d;
+      G(0, colA) = 2.0 * diff(d);
+      G(0, colB) = -2.0 * diff(d);
+    }
+  }
+};
+
 template <int D>
 class MSS_Function : public NonlinearFunction
 {
   MassSpringSystem<D> &mss;
+  Constraint *constraint; // if this is null -> unconstrained, not null -> constrained
 
 public:
+  // Unconstrained constructor (exactly like old version)
   MSS_Function(MassSpringSystem<D> &_mss)
-      : mss(_mss) {}
+      : mss(_mss), constraint(nullptr) {}
+
+  // Constrained constructor (with Lagrange multiplier)
+  MSS_Function(MassSpringSystem<D> &_mss, Constraint &_constr)
+      : mss(_mss), constraint(&_constr) {}
 
   virtual size_t dimX() const override { return D * mss.masses().size(); }
   virtual size_t dimF() const override { return D * mss.masses().size(); }
 
   virtual void evaluate(VectorView<double> x, VectorView<double> f) const override
   {
-    f = 0.0;
+    const size_t ndof = dimX();
 
+    // Compute forces F(x) as before
+    Vector<> F(ndof);
+    F = 0.0;
     auto xmat = x.asMatrix(mss.masses().size(), D);
-    auto fmat = f.asMatrix(mss.masses().size(), D);
+    auto Fmat = F.asMatrix(mss.masses().size(), D);
 
+    // Gravity forces:
     for (size_t i = 0; i < mss.masses().size(); i++)
-      fmat.row(i) = mss.masses()[i].mass * mss.getGravity();
+      Fmat.row(i) = mss.masses()[i].mass * mss.getGravity();
 
+    // Springs:
     for (auto spring : mss.springs())
     {
       auto [c1, c2] = spring.connectors;
@@ -171,103 +255,178 @@ public:
       double force = spring.stiffness * (norm(p1 - p2) - spring.length);
       Vec<D> dir12 = 1.0 / norm(p1 - p2) * (p2 - p1);
       if (c1.type == Connector::MASS)
-        fmat.row(c1.nr) += force * dir12;
+        Fmat.row(c1.nr) += force * dir12;
       if (c2.type == Connector::MASS)
-        fmat.row(c2.nr) -= force * dir12;
+        Fmat.row(c2.nr) -= force * dir12;
     }
 
-    for (size_t i = 0; i < mss.masses().size(); i++)
-      fmat.row(i) *= 1.0 / mss.masses()[i].mass;
+    // If there is no constraint: old behavior (unconstrained)
+    if (!constraint)
+    {
+      // f = acceleration = M^-1*F
+      auto fmat = f.asMatrix(mss.masses().size(), D);
+      for (size_t i = 0; i < mss.masses().size(); i++)
+        fmat.row(i) = (1.0 / mss.masses()[i].mass) * Fmat.row(i);
+      return;
+    }
+
+    // With constraint: solve system for [a; λ] with a linear solver, then only give a to Newmark solver
+    const size_t m = constraint->ncon; // number of constraints
+
+    // Build mass matrix M (diagonal)
+    Matrix<> Mmat(ndof, ndof);
+    Mmat = 0.0;
+    for (size_t i = 0; i < mss.masses().size(); ++i)
+      for (int d = 0; d < D; ++d)
+      {
+        size_t k = i * D + d;
+        Mmat(k, k) = mss.masses()[i].mass;
+      }
+
+    // Compute g(x) and G(x) (with G(x) being the Jacobian of g(x))
+    Vector<> gx(m);
+    Matrix<> G(m, ndof);
+    constraint->evaluateG(x, gx);       // gx = g(x)
+    constraint->evaluateJacobian(x, G); // G = ∂g/∂x
+
+    // Assemble matrix A with M on the diagonal block, G^T in the top-right block, G in the bottom-left block
+    // Assemble right-hand side with force vector F(x) on top and −g(x) at the bottom
+    Matrix<> A(ndof + m, ndof + m);
+    Vector<> rhs(ndof + m);
+    A = 0.0;
+
+    // Top-left block: M
+    for (size_t i = 0; i < ndof; ++i)
+      for (size_t j = 0; j < ndof; ++j)
+        A(i, j) = Mmat(i, j);
+
+    // Top-right block: G^T; bottom-left block: G
+    for (size_t r = 0; r < m; ++r)
+      for (size_t c = 0; c < ndof; ++c)
+      {
+        A(c, ndof + r) = G(r, c); // G^T
+        A(ndof + r, c) = G(r, c); // G
+      }
+
+    // RHS = [F; -g(x)]
+    for (size_t i = 0; i < ndof; ++i)
+      rhs(i) = F(i);
+    for (size_t j = 0; j < m; ++j)
+      rhs(ndof + j) = -gx(j);
+
+    // Solve A * sol = rhs using Eigen
+    Eigen::MatrixXd AE(ndof + m, ndof + m);
+    Eigen::VectorXd bE(ndof + m);
+
+    // copy A and rhs into Eigen structures
+    for (size_t i = 0; i < ndof + m; ++i)
+    {
+      bE(i) = rhs(i);
+      for (size_t j = 0; j < ndof + m; ++j)
+        AE(i, j) = A(i, j);
+    }
+
+    // solve: [a; λ] = AE^{-1} * bE
+    Eigen::VectorXd xE = AE.fullPivLu().solve(bE);
+
+    // Extract acceleration a into f to be able to give it to the Newmark solver
+    for (size_t i = 0; i < ndof; ++i)
+      f(i) = xE(i);
   }
 
   /**
    * Computes the exact Jacobian of the system acceleration.
    * J = d(Acceleration) / d(Position)
    */
-virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
-{
+  virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
+  {
     // 1. Initialize Jacobian to zero
     df = 0.0;
-    
+
     auto xmat = x.asMatrix(mss.masses().size(), D);
 
     // 2. Process Springs
     for (auto spring : mss.springs())
     {
-        auto [c1, c2] = spring.connectors;
-        
-        // Get Positions
-        Vec<D> p1, p2;
-        if (c1.type == Connector::FIX) p1 = mss.fixes()[c1.nr].pos;
-        else                           p1 = xmat.row(c1.nr);
+      auto [c1, c2] = spring.connectors;
 
-        if (c2.type == Connector::FIX) p2 = mss.fixes()[c2.nr].pos;
-        else                           p2 = xmat.row(c2.nr);
+      // Get Positions
+      Vec<D> p1, p2;
+      if (c1.type == Connector::FIX)
+        p1 = mss.fixes()[c1.nr].pos;
+      else
+        p1 = xmat.row(c1.nr);
 
-        // Constants
-        double k = spring.stiffness;
-        double L0 = spring.length;
+      if (c2.type == Connector::FIX)
+        p2 = mss.fixes()[c2.nr].pos;
+      else
+        p2 = xmat.row(c2.nr);
 
-        // Vectors
-        Vec<D> diff = p2 - p1;
-        double L = norm(diff);
-        
-        // Safety check
-        if (L < 1e-14) continue;
+      // Constants
+      double k = spring.stiffness;
+      double L0 = spring.length;
 
-        // Physics Coefficients
-        // s_elastic: Resistance to stretching (k)
-        // s_geometric: Resistance to rotation (Tension / L)
-        double s_elastic = k;
-        double s_geometric = k * (L - L0) / L;
+      // Vectors
+      Vec<D> diff = p2 - p1;
+      double L = norm(diff);
 
-        // Loop over dimensions (i=Row dimension, j=Col dimension)
-        for (size_t i = 0; i < D; i++)
+      // Safety check
+      if (L < 1e-14)
+        continue;
+
+      // Physics Coefficients
+      // s_elastic: Resistance to stretching (k)
+      // s_geometric: Resistance to rotation (Tension / L)
+      double s_elastic = k;
+      double s_geometric = k * (L - L0) / L;
+
+      // Loop over dimensions (i=Row dimension, j=Col dimension)
+      for (size_t i = 0; i < D; i++)
+      {
+        for (size_t j = 0; j < D; j++)
         {
-            for (size_t j = 0; j < D; j++)
-            {
-                // Normalized direction components
-                double n_i = diff(i) / L;
-                double n_j = diff(j) / L;
-                
-                double delta = (i == j) ? 1.0 : 0.0;
-                
-                // Exact Derivative Formula
-                // val = d(Force_i) / d(Pos_j)
-                double val = s_geometric * delta + (s_elastic - s_geometric) * n_i * n_j;
+          // Normalized direction components
+          double n_i = diff(i) / L;
+          double n_j = diff(j) / L;
 
-                // --- MATRIX ASSEMBLY (with Mass Division) ---
+          double delta = (i == j) ? 1.0 : 0.0;
 
-                // 1. Mass 1 Diagonal (Effect of M1 on M1)
-                if (c1.type == Connector::MASS)
-                {
-                    double m1 = mss.masses()[c1.nr].mass;
-                    df(D * c1.nr + i, D * c1.nr + j) -= val / m1;
-                }
+          // Exact Derivative Formula
+          // val = d(Force_i) / d(Pos_j)
+          double val = s_geometric * delta + (s_elastic - s_geometric) * n_i * n_j;
 
-                // 2. Mass 2 Diagonal (Effect of M2 on M2)
-                if (c2.type == Connector::MASS)
-                {
-                    double m2 = mss.masses()[c2.nr].mass;
-                    df(D * c2.nr + i, D * c2.nr + j) -= val / m2;
-                }
+          // --- MATRIX ASSEMBLY (with Mass Division) ---
 
-                // 3. Off-Diagonals (Interaction)
-                if (c1.type == Connector::MASS && c2.type == Connector::MASS)
-                {
-                    double m1 = mss.masses()[c1.nr].mass;
-                    double m2 = mss.masses()[c2.nr].mass;
+          // 1. Mass 1 Diagonal (Effect of M1 on M1)
+          if (c1.type == Connector::MASS)
+          {
+            double m1 = mss.masses()[c1.nr].mass;
+            df(D * c1.nr + i, D * c1.nr + j) -= val / m1;
+          }
 
-                    // Force on M1 due to M2
-                    df(D * c1.nr + i, D * c2.nr + j) += val / m1;
+          // 2. Mass 2 Diagonal (Effect of M2 on M2)
+          if (c2.type == Connector::MASS)
+          {
+            double m2 = mss.masses()[c2.nr].mass;
+            df(D * c2.nr + i, D * c2.nr + j) -= val / m2;
+          }
 
-                    // Force on M2 due to M1
-                    df(D * c2.nr + i, D * c1.nr + j) += val / m2;
-                }
-            }
+          // 3. Off-Diagonals (Interaction)
+          if (c1.type == Connector::MASS && c2.type == Connector::MASS)
+          {
+            double m1 = mss.masses()[c1.nr].mass;
+            double m2 = mss.masses()[c2.nr].mass;
+
+            // Force on M1 due to M2
+            df(D * c1.nr + i, D * c2.nr + j) += val / m1;
+
+            // Force on M2 due to M1
+            df(D * c2.nr + i, D * c1.nr + j) += val / m2;
+          }
         }
+      }
     }
-}
+  }
 };
 
 #endif
