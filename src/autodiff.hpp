@@ -84,14 +84,57 @@ namespace ASC_ode
    template <size_t N, typename T = double>
    auto operator+ (T a, const AutoDiff<N, T>& b) { return AutoDiff<N, T>(a) + b; }
 
+   template <size_t N, typename T = double>
+   AutoDiff<N, T> operator- (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+   {
+   AutoDiff<N, T> result(a.value() - b.value());
+   for (size_t i = 0; i < N; i++)
+     result.deriv()[i] = a.deriv()[i] - b.deriv()[i];
+   return result;
+   }
+
+  template <size_t N, typename T = double>
+  AutoDiff<N, T> operator* (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+  {
+      AutoDiff<N, T> result(a.value() * b.value());
+      for (size_t i = 0; i < N; i++)
+         result.deriv()[i] = a.deriv()[i] * b.value() + a.value() * b.deriv()[i];
+      return result;
+  }
+
+  template <size_t N, typename T = double>
+  AutoDiff<N, T> operator/ (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+  {
+    AutoDiff<N, T> result(a.value() / b.value());
+    for (size_t i = 0; i < N; i++)
+      result.deriv()[i] =
+        (a.deriv()[i] * b.value() - a.value() * b.deriv()[i]) /
+        (b.value() * b.value());
+    return result;
+  }
+
 
    template <size_t N, typename T = double>
-   AutoDiff<N, T> operator* (const AutoDiff<N, T>& a, const AutoDiff<N, T>& b)
+   AutoDiff<N, T> square(const AutoDiff<N, T>& a)
    {
-       AutoDiff<N, T> result(a.value() * b.value());
+       AutoDiff<N, T> result(a.value() * a.value());  // value = a^2
+
        for (size_t i = 0; i < N; i++)
-          result.deriv()[i] = a.deriv()[i] * b.value() + a.value() * b.deriv()[i];
+          result.deriv()[i] = T(2) * a.value() * a.deriv()[i];
+
        return result;
+   }
+
+   template <size_t N, typename T = double>
+   AutoDiff<N, T> sqrt(const AutoDiff<N, T>& a)
+   {
+      T val = std::sqrt(a.value());
+      AutoDiff<N, T> result(val);
+
+      for (size_t i = 0; i < N; i++)
+          result.deriv()[i] = a.deriv()[i] / (T(2) * val);
+
+      return result;
    }
 
    using std::sin;
@@ -106,6 +149,42 @@ namespace ASC_ode
        return result;
    }
 
+   template <size_t N, typename T = double>
+   AutoDiff<N, T> cos(const AutoDiff<N, T> &a)
+   {
+       AutoDiff<N, T> result(cos(a.value()));
+       for (size_t i = 0; i < N; i++)
+           result.deriv()[i] = -sin(a.value()) * a.deriv()[i];
+       return result;
+   }
+
+   template <size_t N, typename T = double>
+   AutoDiff<N, T> tan(const AutoDiff<N, T> &a)
+   {
+       AutoDiff<N, T> result(tan(a.value()));
+       T sec2 = 1 / (cos(a.value()) * cos(a.value()));
+       for (size_t i = 0; i < N; i++)
+           result.deriv()[i] = sec2 * a.deriv()[i];
+       return result;
+   }
+
+    template <size_t N, typename T = double>
+    AutoDiff<N, T> log(const AutoDiff<N, T> &a)
+    {
+        AutoDiff<N, T> result(log(a.value()));
+        for (size_t i = 0; i < N; i++)
+            result.deriv()[i] = (1 / a.value()) * a.deriv()[i];
+        return result;
+    }
+
+    template <size_t N, typename T = double>
+    AutoDiff<N, T> exp(const AutoDiff<N, T> &a)
+    {
+        AutoDiff<N, T> result(exp(a.value()));
+        for (size_t i = 0; i < N; i++)
+            result.deriv()[i] = result.value() * a.deriv()[i];
+        return result;
+    }
 
 } // namespace ASC_ode
 
