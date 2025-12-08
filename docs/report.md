@@ -954,11 +954,13 @@ Each mass $i$ has position $x_i \in \mathbb{R}^D$, velocity $\dot{x}_i$, and acc
 For each mass, the applied forces are:
 
 - Gravity:
+
   $$
   F_i = m_i \, g.
   $$
 
 - Spring forces between masses $i$ and $j$:
+
   $$
   F_{ij} = k \big( \|x_i - x_j\| - L_0 \big)\, \frac{x_j - x_i}{\|x_j - x_i\|}.
   $$
@@ -1003,23 +1005,23 @@ which gives the coupled system of two equations:
 
 1. **Modified Newton equation**
 
-   $$
-   M\ddot{x} = -\frac{\partial U}{\partial x} + G(x)^{T} \lambda,
-   $$
+$$
+M\ddot{x} = -\frac{\partial U}{\partial x} + G(x)^{T} \lambda,
+$$
 
-   where
+where
 
-   $$
-   G(x) = \frac{\partial g}{\partial x}
-   $$
+$$
+G(x) = \frac{\partial g}{\partial x}
+$$
 
-   is the Jacobian of the constraint.
+is the Jacobian of the constraint.
 
 2. **Constraint equation**
 
-   $$
-   g(x) = 0.
-   $$
+$$
+g(x) = 0.
+$$
 
 To enforce a distance constraint such that the distance between masses $A$ and $B$ remains equal to some defined length $L_0$, $g(x)$ is defined as follows:
 
@@ -1054,8 +1056,9 @@ G & 0
 =
 \begin{pmatrix}
 F(x) \\ -g(x)
-\end{pmatrix}.
+\end{pmatrix}
 $$
+.
 
 Solving this system provides both:
 - the **accelerations** $\ddot{x}$, needed by the Newmark solver,
