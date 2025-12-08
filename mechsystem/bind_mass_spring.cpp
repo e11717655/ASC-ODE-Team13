@@ -71,7 +71,6 @@ PYBIND11_MODULE(mass_spring, m) {
                     [](Mass<3> & m, double mass) { m.mass = mass; })
       .def_property_readonly("pos",
                              [](Mass<3> & m) { return m.pos.data(); })
-      // FIXED: Use parenthesis accessors m.vel(0)
       .def_property("vel",
                     [](Mass<3> & m) { return std::vector<double>{m.vel(0), m.vel(1), m.vel(2)}; },
                     [](Mass<3> & m, std::vector<double> v) { 
