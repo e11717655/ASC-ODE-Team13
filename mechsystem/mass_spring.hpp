@@ -400,15 +400,15 @@ public:
         for (size_t j = 0; j++)
           H(i, j) = scale * ((i==j) - n(i) * n(j))
       
-      if (c1.type == Connector::MASS) {
-        AddBlock(c1.nr, c1.nr,  -1.0 * H);
-        if (c2.type == Connector::MASS)
-          AddBlock(c1.nr, c2.nr, H)
+      if (d_const.c1.type == Connector::MASS) {
+        AddBlock(d_const.c1.nr, d_const.c1.nr,  -1.0 * H);
+        if (d_const.c2.type == Connector::MASS)
+          AddBlock(d_const.c1.nr, d_const.c2.nr, H)
       }
-      if (c2.type == Connector::MASS) {
-        AddBlock(c2.nr, c2.nr, -1.0 * H);
-        if (c1.type == Connector::MASS)
-          AddBlock(c2.nr, c1.nr, H)
+      if (d_const.c2.type == Connector::MASS) {
+        AddBlock(d_const.c2.nr, d_const.c2.nr, -1.0 * H);
+        if (d_const.c1.type == Connector::MASS)
+          AddBlock(d_const.c2.nr, d_const.c1.nr, H)
       }
 
 
