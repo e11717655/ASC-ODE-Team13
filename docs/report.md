@@ -927,7 +927,6 @@ This was then implemented wit the RK2 Method, the RK4 method and the Nyström me
 The results showed that as the order increased, the Methods became more accurate with a smaller deviation from the Analytic Solution. They also showed that the answers were all more similar at the beginning and that the deviations were larger at the end. The order of accuracy also scaled with what order so the `RK2`  method had the largest error. The Nyström method had an error very similar to the implicit methods, so very low, but it alos is the most expensive per step. They are explicit methods, which means they are conditionally stable and as the step size increases they will eventually lose accuract and stability.
 
 
-
 # Exercise 20.4.1 Mass-spring system
 
 We consider a mechanical system composed of point masses connected by springs and possibly fixed supports.
@@ -940,7 +939,7 @@ First, we extend the formulation by constraints using Lagrange multipliers. This
 
 ### System State
 
-We simulate \(N\) point masses in a space of dimension \(D\).
+We simulate $N$ point masses in a space of dimension $D$.
 
 The full position vector is
 
@@ -948,7 +947,7 @@ $$
 x \in \mathbb{R}^{n}, \qquad n = D \cdot N,
 $$
 
-Each mass \( i \) has position \( x_i \in \mathbb{R}^D \), velocity \( \dot{x}_i \), and acceleration \( \ddot{x}_i \).
+Each mass $i$ has position $x_i \in \mathbb{R}^D$, velocity $\dot{x}_i$, and acceleration $\ddot{x}_i$.
 
 ### Forces
 
@@ -959,7 +958,7 @@ For each mass, the applied forces are:
   F_i = m_i \, g.
   $$
 
-- Spring forces between masses \(i\) and \(j\):
+- Spring forces between masses $i$ and $j$:
   $$
   F_{ij} = k \big( \|x_i - x_j\| - L_0 \big)\, \frac{x_j - x_i}{\|x_j - x_i\|}.
   $$
@@ -973,8 +972,8 @@ M \ddot{x} = F(x),
 $$
 
 where  
-- \( M \in \mathbb{R}^{n \times n} \) is diagonal with masses on the diagonal,  
-- \( F(x) \in \mathbb{R}^{n} \) is the vector of applied forces.
+- $M \in \mathbb{R}^{n \times n}$ is diagonal with masses on the diagonal,  
+- $F(x) \in \mathbb{R}^{n}$ is the vector of applied forces.
 
 The solver (Newmark integrator) only needs the function
 
@@ -1022,10 +1021,10 @@ which gives the coupled system of two equations:
    g(x) = 0.
    $$
 
-To enforce a distance constraint such that the distance between masses \(A\) and \(B\) remains equal to some defined length \(L_0\), \(g(x)\) is defined as follows:
+To enforce a distance constraint such that the distance between masses $A$ and $B$ remains equal to some defined length $L_0$, $g(x)$ is defined as follows:
 
 $$
-g(x) = \|\,x_A - x_B\,\|^2 - L_0^2 = 0.
+g(x) = \|x_A - x_B\|^2 - L_0^2 = 0.
 $$
 
 The Jacobian becomes:
@@ -1040,7 +1039,7 @@ This was implemented in `DistanceConstraint`.
 
 ---
 
-## 3. Saddle-Point System for \(\ddot{x}\) and \(\lambda\)
+## 3. Saddle-Point System for $\ddot{x}$ and $\lambda$
 
 Adding the constraints finally leads to the linear saddle-point system
 
@@ -1059,7 +1058,7 @@ F(x) \\ -g(x)
 $$
 
 Solving this system provides both:
-- the **accelerations** \( \ddot{x} \), needed by the Newmark solver,
-- the **Lagrange multipliers** \( \lambda \), enforcing the constraint.
+- the **accelerations** $\ddot{x}$, needed by the Newmark solver,
+- the **Lagrange multipliers** $\lambda$, enforcing the constraint.
 
-To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations \(\ddot{x}\) are then passed to the Newmark time-integration method, while the multipliers \(\lambda\) are used internally to enforce the constraint.
+To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations $\ddot{x}$ are then passed to the Newmark time-integration method, while the multipliers $\lambda$ are used internally to enforce the constraint.
