@@ -18,7 +18,12 @@ PYBIND11_MODULE(mass_spring, m) {
 
     // --- BASE CLASSES ---
     py::class_<NonlinearFunction, std::shared_ptr<NonlinearFunction>>(m, "NonlinearFunction");
-    py::class_<Constraint>(m, "Constraint");
+    py::class_<Constraint, std::shared_ptr<Constraint>>(m, "Constraint");
+
+    // --- CONNECTOR ---
+    py::class_<Connector>(m, "Connector")
+      .def_readwrite("type", &Connector::type)
+      .def_readwrite("nr", &Connector::nr);
 
     // --- 2D CLASSES ---
 
@@ -28,7 +33,6 @@ PYBIND11_MODULE(mass_spring, m) {
                     [](Mass<2> & m, double mass) { m.mass = mass; })
       .def_property_readonly("pos",
                              [](Mass<2> & m) { return m.pos.data(); });
-      ;
       
     m.def("Mass", [](double m, std::array<double,2> p)
     {
@@ -44,10 +48,19 @@ PYBIND11_MODULE(mass_spring, m) {
       return Fix<2>{ { p[0], p[1] } };
     });
 
-    // DistanceConstraint Binding
-    py::class_<DistanceConstraint<2>, Constraint>(m, "DistanceConstraint2d")
-      .def(py::init<size_t, size_t, size_t, double>(), 
-           py::arg("ndof"), py::arg("massA"), py::arg("massB"), py::arg("length"));
+    py::class_<MassSpringSystem<2>> (m, "MassSpringSystem2d")
+      .def(py::init<>())
+      .def_property("gravity", [](MassSpringSystem<2> & mss) { return mss.getGravity(); },
+                    [](MassSpringSystem<2> & mss, std::array<double,2> g) { mss.setGravity(Vec<2>{g[0],g[1]}); })
+      .def("add", [](MassSpringSystem<2> & mss, Mass<2> m) { return mss.addMass(m); })
+      .def("add", [](MassSpringSystem<2> & mss, Fix<2> f) { return mss.addFix(f); })
+      .def("add", [](MassSpringSystem<2> & mss, Spring s) { return mss.addSpring(s); })
+      .def("addConstraint", [](MassSpringSystem<2> & mss, std::shared_ptr<Constraint> c) { mss.addConstraint(c); })
+      ;
+
+    py::class_<DistanceConstraint<2>, Constraint, std::shared_ptr<DistanceConstraint<2>>>(m, "DistanceConstraint2d")
+      .def(py::init<size_t, Connector, Connector, double, MassSpringSystem<2>&>(), 
+           py::arg("ndof"), py::arg("c1"), py::arg("c2"), py::arg("length"), py::arg("mss"));
 
 
     // --- 3D CLASSES ---
@@ -57,8 +70,13 @@ PYBIND11_MODULE(mass_spring, m) {
                     [](Mass<3> & m) { return m.mass; },
                     [](Mass<3> & m, double mass) { m.mass = mass; })
       .def_property_readonly("pos",
-                             [](Mass<3> & m) { return m.pos.data(); });
-    ;
+                             [](Mass<3> & m) { return m.pos.data(); })
+      // FIXED: Use parenthesis accessors m.vel(0)
+      .def_property("vel",
+                    [](Mass<3> & m) { return std::vector<double>{m.vel(0), m.vel(1), m.vel(2)}; },
+                    [](Mass<3> & m, std::vector<double> v) { 
+                        if(v.size()==3) m.vel = Vec<3>{v[0], v[1], v[2]}; 
+                    });
 
     m.def("Mass", [](double m, std::array<double,3> p)
     {
@@ -75,61 +93,6 @@ PYBIND11_MODULE(mass_spring, m) {
       return Fix<3>{ { p[0], p[1], p[2] } };
     });
 
-    py::class_<Connector> (m, "Connector");
-
-    py::class_<Spring> (m, "Spring")
-      .def(py::init<double, double, std::array<Connector,2>>())
-      .def_property_readonly("connectors",
-                             [](Spring & s) { return s.connectors; })
-      ;
-
-    
-    py::bind_vector<std::vector<Mass<3>>>(m, "Masses3d");
-    py::bind_vector<std::vector<Fix<3>>>(m, "Fixes3d");
-    py::bind_vector<std::vector<Spring>>(m, "Springs");        
-    
-    
-    // MassSpringSystem2d (Updated with missing methods)
-    py::class_<MassSpringSystem<2>> (m, "MassSpringSystem2d")
-      .def(py::init<>())
-      .def_property("gravity", [](MassSpringSystem<2> & mss) { return mss.getGravity(); },
-                    [](MassSpringSystem<2> & mss, std::array<double,2> g) { mss.setGravity(Vec<2>{g[0],g[1]}); })
-      .def("add", [](MassSpringSystem<2> & mss, Mass<2> m) { return mss.addMass(m); })
-      .def("add", [](MassSpringSystem<2> & mss, Fix<2> f) { return mss.addFix(f); })
-      .def("add", [](MassSpringSystem<2> & mss, Spring s) { return mss.addSpring(s); })
-      ;
-
-    // MSS_Function2d (Updated with corrected VectorView/MatrixView constructors)
-    py::class_<MSS_Function<2>, std::shared_ptr<MSS_Function<2>>, NonlinearFunction>(m, "MSS_Function2d")
-      .def(py::init<MassSpringSystem<2>&>())
-      .def(py::init<MassSpringSystem<2>&, Constraint&>())
-      
-      .def("evaluate", [](MSS_Function<2> & self, py::array_t<double> x, py::array_t<double> f) {
-          py::buffer_info bx = x.request();
-          py::buffer_info bf = f.request();
-          
-          // FIX: Argument order is (size, pointer)
-          VectorView<double> vx(bx.size, (double*)bx.ptr);
-          VectorView<double> vf(bf.size, (double*)bf.ptr);
-          
-          self.evaluate(vx, vf);
-      })
-      
-      .def("evaluateDeriv", [](MSS_Function<2> & self, py::array_t<double> x, py::array_t<double> df) {
-          py::buffer_info bx = x.request();
-          py::buffer_info bdf = df.request();
-          size_t n = bx.size;
-          
-          // FIX: Argument order is (size, pointer) for Vector
-          VectorView<double> vx(n, (double*)bx.ptr);
-          
-          // FIX: Argument order is (rows, cols, pointer) for Matrix
-          MatrixView<double> mdf(n, n, (double*)bdf.ptr);
-          
-          self.evaluateDeriv(vx, mdf);
-      });
-      
-        
     py::class_<MassSpringSystem<3>> (m, "MassSpringSystem3d")
       .def(py::init<>())
       .def("__str__", [](MassSpringSystem<3> & mss) {
@@ -142,6 +105,8 @@ PYBIND11_MODULE(mass_spring, m) {
       .def("add", [](MassSpringSystem<3> & mss, Mass<3> m) { return mss.addMass(m); })
       .def("add", [](MassSpringSystem<3> & mss, Fix<3> f) { return mss.addFix(f); })
       .def("add", [](MassSpringSystem<3> & mss, Spring s) { return mss.addSpring(s); })
+      .def("addConstraint", [](MassSpringSystem<3> & mss, std::shared_ptr<Constraint> c) { mss.addConstraint(c); })
+      
       .def_property_readonly("masses", [](MassSpringSystem<3> & mss) -> auto& { return mss.masses(); })
       .def_property_readonly("fixes", [](MassSpringSystem<3> & mss) -> auto& { return mss.fixes(); })
       .def_property_readonly("springs", [](MassSpringSystem<3> & mss) -> auto& { return mss.springs(); })
@@ -149,7 +114,6 @@ PYBIND11_MODULE(mass_spring, m) {
         if (c.type==Connector::FIX) return py::cast(mss.fixes()[c.nr]);
         else return py::cast(mss.masses()[c.nr]);
       })
-      
       .def("getState", [] (MassSpringSystem<3> & mss) {
         Vector<> x(3*mss.masses().size());
         Vector<> dx(3*mss.masses().size());
@@ -157,7 +121,6 @@ PYBIND11_MODULE(mass_spring, m) {
         mss.getState (x, dx, ddx);
         return std::vector<double>(x);
       })
-
       .def("simulate", [](MassSpringSystem<3> & mss, double tend, size_t steps) {
         Vector<> x(3*mss.masses().size());
         Vector<> dx(3*mss.masses().size());
@@ -171,4 +134,39 @@ PYBIND11_MODULE(mass_spring, m) {
 
         mss.setState (x, dx, ddx);  
     });
+
+    py::class_<DistanceConstraint<3>, Constraint, std::shared_ptr<DistanceConstraint<3>>>(m, "DistanceConstraint3d")
+      .def(py::init<size_t, Connector, Connector, double, MassSpringSystem<3>&>(), 
+           py::arg("ndof"), py::arg("c1"), py::arg("c2"), py::arg("length"), py::arg("mss"));
+
+
+    py::class_<Spring> (m, "Spring")
+      .def(py::init<double, double, std::array<Connector,2>>())
+      .def_property_readonly("connectors",
+                             [](Spring & s) { return s.connectors; })
+      ;
+
+    
+    py::bind_vector<std::vector<Mass<3>>>(m, "Masses3d");
+    py::bind_vector<std::vector<Fix<3>>>(m, "Fixes3d");
+    py::bind_vector<std::vector<Spring>>(m, "Springs");        
+
+    // MSS_Function2d
+    py::class_<MSS_Function<2>, std::shared_ptr<MSS_Function<2>>, NonlinearFunction>(m, "MSS_Function2d")
+      .def(py::init<MassSpringSystem<2>&>())
+      .def("evaluate", [](MSS_Function<2> & self, py::array_t<double> x, py::array_t<double> f) {
+          py::buffer_info bx = x.request();
+          py::buffer_info bf = f.request();
+          VectorView<double> vx(bx.size, (double*)bx.ptr);
+          VectorView<double> vf(bf.size, (double*)bf.ptr);
+          self.evaluate(vx, vf);
+      })
+      .def("evaluateDeriv", [](MSS_Function<2> & self, py::array_t<double> x, py::array_t<double> df) {
+          py::buffer_info bx = x.request();
+          py::buffer_info bdf = df.request();
+          size_t n = bx.size;
+          VectorView<double> vx(n, (double*)bx.ptr);
+          MatrixView<double> mdf(n, n, (double*)bdf.ptr);
+          self.evaluateDeriv(vx, mdf);
+      });
 }
