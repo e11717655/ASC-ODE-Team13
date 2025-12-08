@@ -334,99 +334,87 @@ public:
       f(i) = xE(i);
   }
 
-  /**
-   * Computes the exact Jacobian of the system acceleration.
-   * J = d(Acceleration) / d(Position)
-   */
+
   virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
   {
-    // 1. Initialize Jacobian to zero
+
     df = 0.0;
 
     auto xmat = x.asMatrix(mss.masses().size(), D);
 
-    // 2. Process Springs
+    auto GetPos = [&](const Connector &c) -> Vec<D> {
+      return (c.type ==Connector::FIX) ? mss.fixes()[c.nr].pos : xmat.row(c.nr);
+    };
+
+    auto AddBlock = [&](size_t row_idx, size_t col_index, const Matrix<D, D>& block){
+      for (size_t i = 0; i < D; i++)
+        for (size_t j = 0; j < count; j++)
+          df(row_idx * D +i, col_index * D + j) += block(i,j);
+    };
+
+
     for (auto spring : mss.springs())
     {
       auto [c1, c2] = spring.connectors;
 
       // Get Positions
-      Vec<D> p1, p2;
-      if (c1.type == Connector::FIX)
-        p1 = mss.fixes()[c1.nr].pos;
-      else
-        p1 = xmat.row(c1.nr);
-
-      if (c2.type == Connector::FIX)
-        p2 = mss.fixes()[c2.nr].pos;
-      else
-        p2 = xmat.row(c2.nr);
-
-      // Constants
-      double k = spring.stiffness;
+      Vec<D> d = GetPos(c2) - GetPos(c1);
+      double L = norm(d);
       double L0 = spring.length;
 
-      // Vectors
-      Vec<D> diff = p2 - p1;
-      double L = norm(diff);
+      Vec<D> n = d / L
 
-      // Safety check
-      if (L < 1e-14)
-        continue;
+      double k_elastic = spring.stiffness;
+      double k_geometric = spring.stiffness * (L - L0) / L;
 
-      // Physics Coefficients
-      // s_elastic: Resistance to stretching (k)
-      // s_geometric: Resistance to rotation (Tension / L)
-      double s_elastic = k;
-      double s_geometric = k * (L - L0) / L;
-
-      // Loop over dimensions (i=Row dimension, j=Col dimension)
+      Matrix<D, D> K;
       for (size_t i = 0; i < D; i++)
-      {
         for (size_t j = 0; j < D; j++)
-        {
-          // Normalized direction components
-          double n_i = diff(i) / L;
-          double n_j = diff(j) / L;
-
-          double delta = (i == j) ? 1.0 : 0.0;
-
-          // Exact Derivative Formula
-          // val = d(Force_i) / d(Pos_j)
-          double val = s_geometric * delta + (s_elastic - s_geometric) * n_i * n_j;
-
-          // --- MATRIX ASSEMBLY (with Mass Division) ---
-
-          // 1. Mass 1 Diagonal (Effect of M1 on M1)
-          if (c1.type == Connector::MASS)
-          {
-            double m1 = mss.masses()[c1.nr].mass;
-            df(D * c1.nr + i, D * c1.nr + j) -= val / m1;
-          }
-
-          // 2. Mass 2 Diagonal (Effect of M2 on M2)
-          if (c2.type == Connector::MASS)
-          {
-            double m2 = mss.masses()[c2.nr].mass;
-            df(D * c2.nr + i, D * c2.nr + j) -= val / m2;
-          }
-
-          // 3. Off-Diagonals (Interaction)
-          if (c1.type == Connector::MASS && c2.type == Connector::MASS)
-          {
-            double m1 = mss.masses()[c1.nr].mass;
-            double m2 = mss.masses()[c2.nr].mass;
-
-            // Force on M1 due to M2
-            df(D * c1.nr + i, D * c2.nr + j) += val / m1;
-
-            // Force on M2 due to M1
-            df(D * c2.nr + i, D * c1.nr + j) += val / m2;
-          }
-        }
+          K(i, j) = k_geometric * (i==j) + (k_elastic - k_geometric) * n(i) * n(j);
+      
+      if (c1.type == Connector::MASS) {
+        AddBlock(c1.nr, c1.nr,  -1.0 * K);
+        if (c2.type == Connector::MASS)
+          AddBlock(c1.nr, c2.nr, K)
+      }
+      if (c2.type == Connector::MASS) {
+        AddBlock(c2.nr, c2.nr, -1.0 * K);
+        if (c1.type == Connector::MASS)
+          AddBlock(c2.nr, c1.nr, K)
       }
     }
+  
+
+    for (size_t i = 0; i < mss.constraints().size(); i++)
+    {
+      const auto & d_const = mss.constraints()[k];
+      Vec<D> d = GetPos(c2) - GetPos(c1);
+      double L = norm(d);
+      Vec<D> n = d / L
+      size_t l_idx = D * mss.masses().size() + k;
+      double lambda = x(l_idx)
+
+      Matrix<D, D> H;
+      double scale = lambda / L;
+      for (size_t i = 0; i++)
+        for (size_t j = 0; j++)
+          H(i, j) = scale * ((i==j) - n(i) * n(j))
+      
+      if (c1.type == Connector::MASS) {
+        AddBlock(c1.nr, c1.nr,  -1.0 * H);
+        if (c2.type == Connector::MASS)
+          AddBlock(c1.nr, c2.nr, H)
+      }
+      if (c2.type == Connector::MASS) {
+        AddBlock(c2.nr, c2.nr, -1.0 * H);
+        if (c1.type == Connector::MASS)
+          AddBlock(c2.nr, c1.nr, H)
+      }
+
+
+    }
   }
+
 };
 
 #endif
