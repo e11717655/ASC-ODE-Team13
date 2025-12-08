@@ -229,8 +229,6 @@ public:
   {
     const size_t ndof = dimX();
 
-    // Add this line to verify it runs:
-    std::cout << "Exact Derivative Called!" << std::endl;
     // Compute forces F(x) as before
     Vector<> F(ndof);
     F = 0.0;
@@ -338,10 +336,10 @@ public:
   }
 
 
-
-    virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
+  virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
   {
     df = 0.0; // Initialize Jacobian to zero
+     std::cout << "Exact Derivative Called!" << std::endl;
 
     // View x as a matrix of positions (Rows: Masses, Cols: Coordinates)
     auto xmat = x.asMatrix(mss.masses().size(), D);
@@ -368,13 +366,11 @@ public:
       // SAFETY: Avoid division by zero
       if (L < 1e-12) continue;
 
-      // FIX: Use multiplication by inverse (Vec / scalar might not be supported)
       Vec<D> n = (1.0 / L) * d; 
 
       double k_elastic = spring.stiffness;
       double k_geometric = spring.stiffness * (1.0 - spring.length / L);
 
-      // FIX: nanoblas::Matrix takes <Type>, not <Size>. Size goes in constructor.
       Matrix<double> K(D, D); 
       for (int i = 0; i < D; i++)
       {
@@ -386,45 +382,62 @@ public:
       }
 
       // 3. Assemble into Global Jacobian (df)
-      // We divide by mass because evaluate() returns acceleration.
+      // NOTE: We do NOT divide by mass here anymore. We accumulate Force Derivatives.
+      // Mass division happens at the very end.
 
       // --- Interaction for Mass 1 (c1) ---
       if (c1.type == Connector::MASS)
       {
-        double invM = 1.0 / mss.masses()[c1.nr].mass;
         size_t r = c1.nr * D; 
 
         for (int i = 0; i < D; i++)
           for (int j = 0; j < D; j++)
-            df(r + i, c1.nr * D + j) -= K(i, j) * invM;
+            df(r + i, c1.nr * D + j) -= K(i, j);
 
         if (c2.type == Connector::MASS)
         {
           for (int i = 0; i < D; i++)
             for (int j = 0; j < D; j++)
-              df(r + i, c2.nr * D + j) += K(i, j) * invM;
+              df(r + i, c2.nr * D + j) += K(i, j);
         }
       }
 
       // --- Interaction for Mass 2 (c2) ---
       if (c2.type == Connector::MASS)
       {
-        double invM = 1.0 / mss.masses()[c2.nr].mass;
         size_t r = c2.nr * D;
 
         for (int i = 0; i < D; i++)
           for (int j = 0; j < D; j++)
-            df(r + i, c2.nr * D + j) -= K(i, j) * invM;
+            df(r + i, c2.nr * D + j) -= K(i, j);
 
         if (c1.type == Connector::MASS)
         {
           for (int i = 0; i < D; i++)
             for (int j = 0; j < D; j++)
-              df(r + i, c1.nr * D + j) += K(i, j) * invM;
+              df(r + i, c1.nr * D + j) += K(i, j);
         }
+      }
+    }
+
+    // Apply scaling by inverse mass to convert Force Jacobian to Acceleration Jacobian
+    // This is the code you requested:
+    size_t numMasses = mss.masses().size();
+    size_t numConstraints = (constraint) ? constraint->ncon : 0;
+    
+    // Safety check: ensure we don't iterate past the actual matrix columns provided by the solver
+    size_t maxCols = std::min(df.cols(), D * numMasses + numConstraints);
+
+    for (size_t i = 0; i < numMasses; i++)
+    {
+      double m = mss.masses()[i].mass;
+      for (size_t a = 0; a < D; a++)
+      {
+        for (size_t j = 0; j < maxCols; j++)
+          df(D * i + a, j) /= m;
       }
     }
   }
 }; // End of Class
 
-#endif // <--- MAKE SURE THIS LINE IS AT THE VERY END OF THE FILE
+#endif
