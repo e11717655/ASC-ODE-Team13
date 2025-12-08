@@ -223,11 +223,14 @@ public:
 
   virtual size_t dimX() const override { return D * mss.masses().size(); }
   virtual size_t dimF() const override { return D * mss.masses().size(); }
+  
 
   virtual void evaluate(VectorView<double> x, VectorView<double> f) const override
   {
     const size_t ndof = dimX();
 
+    // Add this line to verify it runs:
+    std::cout << "Exact Derivative Called!" << std::endl;
     // Compute forces F(x) as before
     Vector<> F(ndof);
     F = 0.0;
@@ -335,86 +338,93 @@ public:
   }
 
 
-  virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
+
+    virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
   {
+    df = 0.0; // Initialize Jacobian to zero
 
-    df = 0.0;
-
+    // View x as a matrix of positions (Rows: Masses, Cols: Coordinates)
     auto xmat = x.asMatrix(mss.masses().size(), D);
 
+    // Helper to get position of a connector (Mass or Fixed point)
     auto GetPos = [&](const Connector &c) -> Vec<D> {
-      return (c.type ==Connector::FIX) ? mss.fixes()[c.nr].pos : xmat.row(c.nr);
+      if (c.type == Connector::FIX)
+        return mss.fixes()[c.nr].pos;
+      else
+        return xmat.row(c.nr);
     };
 
-    auto AddBlock = [&](size_t row_idx, size_t col_index, const Matrix<D, D>& block){
-      for (size_t i = 0; i < D; i++)
-        for (size_t j = 0; j < count; j++)
-          df(row_idx * D +i, col_index * D + j) += block(i,j);
-    };
-
-
-    for (auto spring : mss.springs())
+    // Loop over all springs to compute Stiffness Matrix K
+    for (auto &spring : mss.springs())
     {
       auto [c1, c2] = spring.connectors;
 
-      // Get Positions
-      Vec<D> d = GetPos(c2) - GetPos(c1);
-      double L = norm(d);
-      double L0 = spring.length;
+      Vec<D> p1 = GetPos(c1);
+      Vec<D> p2 = GetPos(c2);
 
-      Vec<D> n = d / L
+      Vec<D> d = p2 - p1;
+      double L = norm(d);
+
+      // SAFETY: Avoid division by zero
+      if (L < 1e-12) continue;
+
+      // FIX: Use multiplication by inverse (Vec / scalar might not be supported)
+      Vec<D> n = (1.0 / L) * d; 
 
       double k_elastic = spring.stiffness;
-      double k_geometric = spring.stiffness * (L - L0) / L;
+      double k_geometric = spring.stiffness * (1.0 - spring.length / L);
 
-      Matrix<D, D> K;
-      for (size_t i = 0; i < D; i++)
-        for (size_t j = 0; j < D; j++)
-          K(i, j) = k_geometric * (i==j) + (k_elastic - k_geometric) * n(i) * n(j);
-      
-      if (c1.type == Connector::MASS) {
-        AddBlock(c1.nr, c1.nr,  -1.0 * K);
+      // FIX: nanoblas::Matrix takes <Type>, not <Size>. Size goes in constructor.
+      Matrix<double> K(D, D); 
+      for (int i = 0; i < D; i++)
+      {
+        for (int j = 0; j < D; j++)
+        {
+          double delta = (i == j) ? 1.0 : 0.0;
+          K(i, j) = k_geometric * delta + (k_elastic - k_geometric) * n(i) * n(j);
+        }
+      }
+
+      // 3. Assemble into Global Jacobian (df)
+      // We divide by mass because evaluate() returns acceleration.
+
+      // --- Interaction for Mass 1 (c1) ---
+      if (c1.type == Connector::MASS)
+      {
+        double invM = 1.0 / mss.masses()[c1.nr].mass;
+        size_t r = c1.nr * D; 
+
+        for (int i = 0; i < D; i++)
+          for (int j = 0; j < D; j++)
+            df(r + i, c1.nr * D + j) -= K(i, j) * invM;
+
         if (c2.type == Connector::MASS)
-          AddBlock(c1.nr, c2.nr, K)
+        {
+          for (int i = 0; i < D; i++)
+            for (int j = 0; j < D; j++)
+              df(r + i, c2.nr * D + j) += K(i, j) * invM;
+        }
       }
-      if (c2.type == Connector::MASS) {
-        AddBlock(c2.nr, c2.nr, -1.0 * K);
+
+      // --- Interaction for Mass 2 (c2) ---
+      if (c2.type == Connector::MASS)
+      {
+        double invM = 1.0 / mss.masses()[c2.nr].mass;
+        size_t r = c2.nr * D;
+
+        for (int i = 0; i < D; i++)
+          for (int j = 0; j < D; j++)
+            df(r + i, c2.nr * D + j) -= K(i, j) * invM;
+
         if (c1.type == Connector::MASS)
-          AddBlock(c2.nr, c1.nr, K)
+        {
+          for (int i = 0; i < D; i++)
+            for (int j = 0; j < D; j++)
+              df(r + i, c1.nr * D + j) += K(i, j) * invM;
+        }
       }
-    }
-  
-
-    for (size_t i = 0; i < mss.constraints().size(); i++)
-    {
-      const auto & d_const = mss.constraints()[k];
-      Vec<D> d = GetPos(c2) - GetPos(c1);
-      double L = norm(d);
-      Vec<D> n = d / L
-      size_t l_idx = D * mss.masses().size() + k;
-      double lambda = x(l_idx)
-
-      Matrix<D, D> H;
-      double scale = lambda / L;
-      for (size_t i = 0; i++)
-        for (size_t j = 0; j++)
-          H(i, j) = scale * ((i==j) - n(i) * n(j))
-      
-      if (d_const.c1.type == Connector::MASS) {
-        AddBlock(d_const.c1.nr, d_const.c1.nr,  -1.0 * H);
-        if (d_const.c2.type == Connector::MASS)
-          AddBlock(d_const.c1.nr, d_const.c2.nr, H)
-      }
-      if (d_const.c2.type == Connector::MASS) {
-        AddBlock(d_const.c2.nr, d_const.c2.nr, -1.0 * H);
-        if (d_const.c1.type == Connector::MASS)
-          AddBlock(d_const.c2.nr, d_const.c1.nr, H)
-      }
-
-
     }
   }
+}; // End of Class
 
-};
-
-#endif
+#endif // <--- MAKE SURE THIS LINE IS AT THE VERY END OF THE FILE

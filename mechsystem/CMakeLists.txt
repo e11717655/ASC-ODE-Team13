@@ -1,4 +1,5 @@
 add_executable (test_mass_spring mass_spring.cpp)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 
 
 find_package(Python 3.8 COMPONENTS Interpreter Development REQUIRED)
