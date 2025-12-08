@@ -955,15 +955,15 @@ For each mass, the applied forces are:
 
 - Gravity:
 
-  $$
-  F_i = m_i \, g.
-  $$
+$$
+F_i = m_i \, g.
+$$
 
 - Spring forces between masses $i$ and $j$:
 
-  $$
-  F_{ij} = k \big( \|x_i - x_j\| - L_0 \big)\, \frac{x_j - x_i}{\|x_j - x_i\|}.
-  $$
+$$
+F_{ij} = k \big( \|x_i - x_j\| - L_0 \big)\, \frac{x_j - x_i}{\|x_j - x_i\|}.
+$$
 
 ### Equations of Motion (Unconstrained)
 
@@ -1046,17 +1046,19 @@ This was implemented in `DistanceConstraint`.
 Adding the constraints finally leads to the linear saddle-point system
 
 $$
-\begin{pmatrix}
-M & G^T \\
+\begin{bmatrix}
+M & G^\top \\
 G & 0
-\end{pmatrix}
-\begin{pmatrix}
-\ddot{x} \\ \lambda
-\end{pmatrix}
+\end{bmatrix}
+\begin{bmatrix}
+\ddot{x} \\
+\lambda
+\end{bmatrix}
 =
-\begin{pmatrix}
-F(x) \\ -g(x)
-\end{pmatrix}
+\begin{bmatrix}
+F(x) \\
+-g(x)
+\end{bmatrix}
 $$
 .
 
