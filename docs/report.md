@@ -906,7 +906,7 @@ Both methods are computationally more expensive than the Explicit Methods due to
 
 #### Conclusion
 
-The Gauss2, Gauss3, and Radau IIA are all high order with Gauss-Legendre being $2s$ where $s$ is the number of stages, and Radau being $2s-1$. This meant that the global errors were very small compared to the amplitutde, which is shown with the graphs overlapping almost perfectly. When zooming in, some differences can be noted but the differences is very small. These differences would be greater if the time steps became larger, or over a much longer time.
+The Gauss2, Gauss3, and Radau IIA are all high order with Gauss-Legendre being $2s$ where $s$ is the number of stages, and Radau being $2s-1$. This meant that the global errors were very small compared to the amplitude, which is shown with the graphs overlapping almost perfectly. When zooming in, some differences can be noted but the differences is very small. These differences would be greater if the time steps became larger, or over a much longer time.
 
 ### Implementation of Explicit Runge-Kutta Method
 
