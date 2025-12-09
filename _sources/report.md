@@ -1092,7 +1092,7 @@ $$
 
 ### 4.1 Spring Contribution ($K_\text{spring}$)
 
-For each spring connecting points $p_1, p_2$  with stiffness $k$ and lenght of the string at rest defined as $\ell$, the code defines the current length $d = \|p_2 - p_1\|$ and unit direction $\text{dir} = (p_2 - p_1)/d$.
+For each spring connecting points $p_1, p_2$  with stiffness $k$ and the length of the string at rest defined as $\ell$, the code defines the current length $d = \|p_2 - p_1\|$ and unit direction $\text{dir} = (p_2 - p_1)/d$.
 
 The local stiffness scalars are defined as:
 
