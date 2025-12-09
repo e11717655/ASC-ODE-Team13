@@ -10,7 +10,6 @@
 
 using namespace ASC_ode;
 using namespace nanoblas;
-
 template <int D>
 class Mass
 {
@@ -54,7 +53,7 @@ public:
   std::array<Connector, 2> connectors;
 };
 
-// --- Constraint Base Class ---
+//Constraint Base Class
 class Constraint
 {
 public:
@@ -65,13 +64,6 @@ public:
 
   virtual void evaluateG(VectorView<double> x, VectorView<double> gx) const = 0;
   virtual void evaluateJacobian(VectorView<double> x, MatrixView<double> G) const = 0;
-
-  // NEW: Add scaled Hessian matrix to H_accum: H_accum += scale * H(x)
-  virtual void addHessian(VectorView<double> x, double scale, MatrixView<double> H_accum) const = 0;
-
-  // NEW: Compute Hessian * vector product: result += H(x) * v
-  virtual void applyHessian(VectorView<double> x, VectorView<double> v, VectorView<double> result) const = 0;
-
   virtual ~Constraint() = default;
 };
 
@@ -196,43 +188,8 @@ public:
         G(0, c2.nr * D + d) = -2.0 * diff(d);
     }
   }
-
-  virtual void addHessian(VectorView<double> x, double scale, MatrixView<double> H) const override
-  {
-    // Hessian of dist^2 is block matrix with 2*I
-    for (int d = 0; d < D; d++)
-    {
-      if (c1.type == Connector::MASS)
-        H(c1.nr * D + d, c1.nr * D + d) += 2.0 * scale;
-      if (c2.type == Connector::MASS)
-        H(c2.nr * D + d, c2.nr * D + d) += 2.0 * scale;
-
-      if (c1.type == Connector::MASS && c2.type == Connector::MASS)
-      {
-        H(c1.nr * D + d, c2.nr * D + d) -= 2.0 * scale;
-        H(c2.nr * D + d, c1.nr * D + d) -= 2.0 * scale;
-      }
-    }
-  }
-
-  virtual void applyHessian(VectorView<double> x, VectorView<double> v, VectorView<double> res) const override
-  {
-    auto vmat = v.asMatrix(this->ndof / D, D);
-    auto resmat = res.asMatrix(this->ndof / D, D);
-
-    Vec<D> v1 = (c1.type == Connector::MASS) ? vmat.row(c1.nr) : Vec<D>(0.0);
-    Vec<D> v2 = (c2.type == Connector::MASS) ? vmat.row(c2.nr) : Vec<D>(0.0);
-    Vec<D> diff = 2.0 * (v1 - v2);
-
-    if (c1.type == Connector::MASS)
-      resmat.row(c1.nr) += diff;
-    if (c2.type == Connector::MASS)
-      resmat.row(c2.nr) -= diff;
-  }
-};
-
-// --- Function Evaluator ---
-template <int D>
+}
+//Function Evaluatortemplate <int D>
 class MSS_Function : public NonlinearFunction
 {
   MassSpringSystem<D> &mss;
@@ -245,7 +202,7 @@ public:
 
   virtual void evaluate(VectorView<double> x, VectorView<double> f) const override
   {
-    // ... (This function remains largely the same as the previous correct KKT version)
+    //This function remains largely the same as the previous correct KKT version
     const size_t ndof = dimX();
 
     Vector<> F(ndof);
@@ -344,10 +301,10 @@ public:
     for (auto &c : mss.constraints())
       m += c->ncon;
 
-    // --- Part 1: Force and Stiffness (Standard Mass-Spring) ---
+    //Force and Stiffness (Standard Mass-Spring)
     auto xmat = x.asMatrix(mss.masses().size(), D);
     
-    // We only need K_spring for the derivative now
+
     Matrix<> K_spring(ndof, ndof);
     K_spring = 0.0;
 
@@ -386,7 +343,7 @@ public:
       }
     }
 
-    // --- Case: Unconstrained ---
+    //Case: Unconstrained
     if (m == 0)
     {
       for (size_t i = 0; i < ndof; i++)
@@ -395,17 +352,14 @@ public:
       return;
     }
 
-    // --- Part 2: Build KKT Matrix (M, G^T; G, 0) ---
-    // Note: We no longer need to solve for 'acc' or 'lambda', so we just build the matrix.
-
     Eigen::MatrixXd AE(ndof + m, ndof + m);
     AE.setZero();
 
-    // Fill Mass Matrix
+    //Fill Mass Matrix
     for (size_t i = 0; i < ndof; i++)
       AE(i, i) = mss.masses()[i / D].mass;
 
-    // Fill Constraint Jacobian G
+    //Fill Constraint Jacobian G
     Matrix<> G(m, ndof);
     G = 0.0;
     size_t row = 0;
@@ -423,29 +377,22 @@ public:
       row += c->ncon;
     }
 
-    // --- Part 3: Build RHS for Derivative ---
-    // Without Hessians, RHS is simply: [ K_spring ]
-    //                                  [    0     ]
-    
+    //Build RHS for Derivative
     Eigen::MatrixXd RHS_deriv(ndof + m, ndof);
     RHS_deriv.setZero();
 
-    // Top rows: Just K_spring
+    //Top rows: Just K_spring
     for (int i = 0; i < ndof; i++)
         for (int j = 0; j < ndof; j++)
             RHS_deriv(i, j) = K_spring(i, j);
 
-    // Bottom rows: 0.0 (Implicitly zero by setZero initialization)
-
-    // --- Part 4: Final Solve ---
-    // Solve: AE * J = RHS
+    //Solve: AE * J = RHS
     Eigen::MatrixXd J_total = AE.fullPivLu().solve(RHS_deriv);
 
-    // Copy result back to df
+    //Copy result back to df
     for (int i = 0; i < ndof; i++)
       for (int j = 0; j < ndof; j++)
         df(i, j) = J_total(i, j);
   }
-}; // Closing Class
-
-#endif // Closing Header
+};
+#endif 
