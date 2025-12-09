@@ -885,7 +885,7 @@ int main()
     return 0;
 }
 
-````
+```
 # Runge Kutta Methods
 
 ## Exercise 19.4
@@ -933,6 +933,8 @@ We consider a mechanical system composed of point masses connected by springs an
 
 First, we extend the formulation by constraints using Lagrange multipliers. This allows us, for example, to enforce a fixed distance between two masses. For the implementation of the constraints the force evaluation in the simulation code is modified and the equations of motion are expanded by a constraint equation. The time integration scheme (Newmark method) remains unchanged.
 
+Before we dive into the how the library can be used to simulate rigid body mechanics, we will go trough the mathematical model, that makes up the foundation of this library.
+
 ---
 
 ## 1. Original Mathematical Model
@@ -949,105 +951,129 @@ $$
 
 Each mass $i$ has position $x_i \in \mathbb{R}^D$, velocity $\dot{x}_i$, and acceleration $\ddot{x}_i$.
 
+---
+
 ### Forces
 
-For each mass, the applied forces are:
+Each mass is subject to external and internal forces.
 
-- Gravity:
-
-$$
-F_i = m_i \, g.
-$$
-
-- Spring forces between masses $i$ and $j$:
+#### Gravity
 
 $$
-F_{ij} = k \big( \|x_i - x_j\| - L_0 \big)\, \frac{x_j - x_i}{\|x_j - x_i\|}.
+F_i = m_i\, g.
 $$
+
+#### Spring Forces
+
+For a spring between masses \(i\) and \(j\):
+
+$$
+F_{ij}
+=
+k\bigl(\|x_i - x_j\| - L_0\bigr)\,
+\frac{x_j - x_i}{\|x_j - x_i\|}.
+$$
+
+This contributes to the global force vector \(F(x)\).
+
+---
 
 ### Equations of Motion (Unconstrained)
 
-The original code solves:
+Without constraints, the dynamics satisfy
 
 $$
-M \ddot{x} = F(x),
+M\ddot{x} = F(x),
 $$
 
 where  
-- $M \in \mathbb{R}^{n \times n}$ is diagonal with masses on the diagonal,  
-- $F(x) \in \mathbb{R}^{n}$ is the vector of applied forces.
+- \(M\) is a diagonal mass matrix,  
+- \(F(x)\) is the vector of all applied forces.
 
-The solver (Newmark integrator) only needs the function
+Thus the acceleration is
 
 $$
-a(x) = M^{-1}F(x).
+a(x) = M^{-1} F(x).
 $$
 
-This was implemented in the class `MSS_Function`.
+This is the behavior implemented in `MSS_Function` when no constraints are added.
 
 ---
 
 ## 2. Adding Constraints
 
-We now introduce a constraint of the form
+We incorporate holonomic constraints of the form
 
 $$
 g(x) = 0.
 $$
 
-We define the Lagrangian:
+These constraints modify the equations of motion.  
+We introduce the Lagrangian:
 
 $$
-\mathcal{L}(x,\lambda) = -U(x) + \lambda^{T} g(x),
+\mathcal{L}(x,\lambda)
+=
+-U(x) + \lambda^T g(x).
 $$
 
-which gives the coupled system of two equations:
-
-1. **Modified Newton equation**
-
-$$
-M\ddot{x} = -\frac{\partial U}{\partial x} + G(x)^{T} \lambda,
-$$
-
-where
-
-$$
-G(x) = \frac{\partial g}{\partial x}
-$$
-
-is the Jacobian of the constraint.
-
-2. **Constraint equation**
-
-$$
-g(x) = 0.
-$$
-
-To enforce a distance constraint such that the distance between masses $A$ and $B$ remains equal to some defined length $L_0$, $g(x)$ is defined as follows:
-
-$$
-g(x) = \|x_A - x_B\|^2 - L_0^2 = 0.
-$$
-
-The Jacobian becomes:
-
-$$
-\frac{\partial g}{\partial x_A} = 2(x_A - x_B), 
-\qquad 
-\frac{\partial g}{\partial x_B} = -2(x_A - x_B).
-$$
-
-This was implemented in `DistanceConstraint`.
+Differentiating yields two coupled equations.
 
 ---
 
-## 3. Saddle-Point System for $\ddot{x}$ and $\lambda$
+### 1. Modified Newton Equation
 
-Adding the constraints finally leads to the linear saddle-point system
+$$
+M\ddot{x}
+=
+-\frac{\partial U}{\partial x}
++
+G(x)^T \lambda,
+$$
+
+where \(G(x)\) is the Jacobian
+
+$$
+G(x) = \frac{\partial g}{\partial x}.
+$$
+
+---
+
+### 2. Constraint Equation
+
+$$
+g(x) = 0.
+$$
+
+---
+
+### Example: Distance Constraint
+
+To keep the distance between masses \(A\) and \(B\) equal to \(L_0\):
+
+$$
+g(x) = \|x_A - x_B\|^2 - L_0^2.
+$$
+
+Then
+
+$$
+\frac{\partial g}{\partial x_A} = 2(x_A - x_B),
+\qquad
+\frac{\partial g}{\partial x_B} = -2(x_A - x_B).
+$$
+
+This is implemented in `DistanceConstraint`.
+
+---
+
+## 3. Saddle-Point System
+
+Combining forces and constraints yields the KKT (saddle‑point) system:
 
 $$
 \begin{bmatrix}
-M & G^\top \\
+M & G^T \\
 G & 0
 \end{bmatrix}
 \begin{bmatrix}
@@ -1057,13 +1083,474 @@ G & 0
 =
 \begin{bmatrix}
 F(x) \\
--g(x)
-\end{bmatrix}
+0
+\end{bmatrix}.
 $$
-.
 
-Solving this system provides both:
-- the **accelerations** $\ddot{x}$, needed by the Newmark solver,
-- the **Lagrange multipliers** $\lambda$, enforcing the constraint.
+The implemented version uses a stabilized formulation:
 
-To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations $\ddot{x}$ are then passed to the Newmark time-integration method, while the multipliers $\lambda$ are used internally to enforce the constraint.
+$$
+\begin{bmatrix}
+M & G^T \\
+G & 0
+\end{bmatrix}
+\begin{bmatrix}
+\ddot{x} \\
+\lambda
+\end{bmatrix}
+=
+\begin{bmatrix}
+F(x) \\
+-\beta\, g(x)
+\end{bmatrix},
+$$
+
+where beta is a large stabilization parameter.
+
+This system is assembled inside  
+`MSS_Function::evaluate`  
+and solved using Eigen.
+
+Only the accelerations $\ddot{x}$ are returned to the time integrator.
+
+---
+
+# 2. Analytic Derivative of Acceleration
+
+The C++ function `evaluateDeriv` computes the **analytic Jacobian** $\mathbf{J} = \frac{\partial \ddot{\mathbf{x}}}{\partial \mathbf{x}}$ (derivative of acceleration with respect to position) for a constrained Mass-Spring System (MSS) using Implicit Differentiation.
+
+---
+
+## 2.1 Solving the Original KKT System
+
+The code first solves the standard KKT system for the current position x:
+
+$$
+A_{KKT} \, s = b(x)
+$$
+
+where
+
+$$
+s = \begin{pmatrix}
+\ddot{x} \\
+\lambda
+\end{pmatrix}
+$$
+
+represents the accelerations and constraint multipliers.
+
+---
+
+## 2.2 Solving the Differentiated System
+
+To compute the derivative ds/dx, we solve:
+
+$$
+A_{KKT} \, J_{total} = RHS_{matrix}
+$$
+
+Here:
+
+- **A_{KKT}**: the original KKT matrix  
+- **J_{total}**: the matrix ds/dx, whose top block is the desired Jacobian J  
+- **RHS_{matrix}**: contains derivatives of forces and constraints with respect to x
+
+---
+
+## 2.3 Components of RHS_matrix
+
+RHS_matrix consists of:
+
+### Spring stiffness (K_spring)
+
+$$
+K_{spring} = - \frac{d F_{spring}}{d x}
+$$
+
+### Constraint force derivatives ($H_{\lambda}$):
+
+These come from constraint Hessians, scaled by the multipliers lambda.
+
+### Constraint Jacobian derivatives
+
+Terms involving $dG/dx$, where G is the constraint Jacobian.
+
+---
+
+## 2.4 Unconstrained Case
+
+If the system has no constraints (G = 0), the Jacobian becomes:
+
+$$
+J = M^{-1} \, ( - K_{spring} )
+$$
+
+---
+
+# Examples
+
+In this section we will showcase some examples of what you can do with the library. We will define three different physical scenarios: The Double Pendulum, a Chain, a Crane and a Spinning Top. Then we use a single Universal Simulation Loop to run and visualize them.
+
+## Double Pendulum
+
+In this example we define 2 masses connected via a constraint.
+
+```cpp
+#for a 2 mass pendulum
+mss = MassSpringSystem3d()
+mss.gravity = (0,0,-9.81)
+use_constraint = True
+mA = mss.add (Mass(1, (1,0,0)))
+mB = mss.add (Mass(2, (2,0,0)))
+f1 = mss.add (Fix( (0,0,0)) )
+mss.add (Spring(1, 200000, (f1, mA)))
+mss.add (Spring(1, 100000, (mA, mB)))
+```
+<img src="../results/mechsystem_results/Double_Pendulum.png">
+
+Here we can see a render of the Double Pendulum. 
+
+## Chain Pendulum
+
+```cpp
+mss = MassSpringSystem3d()
+mss.gravity = (0,0,-9.81)
+
+use_constraint = True
+
+
+number_of_masses = 10
+starting_position = (0,0,0)
+length_chain = 10
+single_length = length_chain/number_of_masses
+
+prev_obj = mss.add(Fix(starting_position))#to store the previous object for the springs
+for i in range(number_of_masses):
+     pos = (starting_position[0] + (i + 1) * single_length, starting_position[1], starting_position[2])
+     new_mass = mss.add(Mass(1.0, pos)) #adding new masses
+     mss.add(Spring(1, 10000, (prev_obj, new_mass)))
+     prev_obj = new_mass
+```
+<img src="../results/mechsystem_results/Chain.png">
+
+Here we see a render of the modeled chain. The chain is fixed at one end.
+
+## Crane
+
+This example simulates a flexible crane structure by constructing a truss entirely out of a network of high-stiffness springs and a heavy tip load. It demonstrates an unconstrained elastic system deforming under gravity.
+
+```cpp
+import math
+
+mss = MassSpringSystem3d()
+mss.gravity = (0, 0, -9.81)
+
+# --- Configuration ---
+num_bays = 5         # Longer arm for the crane
+width = 1.0           # Width of the boom
+height = 1.0          # Height of the boom
+length = 1.0          # Length of each segment
+stiffness = 50000     # Stiffer structure to hold the weight
+
+cable_len = 2.0       # How long the cable hangs down
+load_mass = 50.0      # The heavy weight at the end
+
+# Calculate diagonal length (for bracing)
+diag_len = math.sqrt(length**2 + height**2)
+# Calculate cable diagonal (distance from top corners to the centered load)
+cable_diag = math.sqrt((width/2)**2 + cable_len**2)
+
+# --- 1. Create the Anchors (The "Tower" Connection) ---
+# We fix the 4 corners at X=0
+p_bl = mss.add(Fix((0, 0, 0)))          # Previous Bottom-Left
+p_br = mss.add(Fix((0, width, 0)))      # Previous Bottom-Right
+p_tr = mss.add(Fix((0, width, height))) # Previous Top-Right
+p_tl = mss.add(Fix((0, 0, height)))     # Previous Top-Left
+
+# --- 2. Build the Jib (The Arm) ---
+for i in range(num_bays):
+    x = (i + 1) * length
+    
+    # Standard truss segments (Lightweight structure)
+    c_bl = mss.add(Mass(1.0, (x, 0, 0)))          # Current Bottom-Left
+    c_br = mss.add(Mass(1.0, (x, width, 0)))      # Current Bottom-Right
+    c_tr = mss.add(Mass(1.0, (x, width, height))) # Current Top-Right
+    c_tl = mss.add(Mass(1.0, (x, 0, height)))     # Current Top-Left
+
+    # --- A. Length Springs (The Long Lines) ---
+    mss.add(Spring(length, stiffness, (p_bl, c_bl)))
+    mss.add(Spring(length, stiffness, (p_br, c_br)))
+    mss.add(Spring(length, stiffness, (p_tr, c_tr)))
+    mss.add(Spring(length, stiffness, (p_tl, c_tl)))
+
+    # --- B. Square Springs (The Cross Section Ring) ---
+    mss.add(Spring(width,  stiffness, (c_bl, c_br))) 
+    mss.add(Spring(height, stiffness, (c_br, c_tr))) 
+    mss.add(Spring(width,  stiffness, (c_tr, c_tl))) 
+    mss.add(Spring(height, stiffness, (c_tl, c_bl))) 
+
+    # --- C. Diagonal Springs (The Strength) ---
+    mss.add(Spring(diag_len, stiffness, (p_bl, c_tl))) 
+    mss.add(Spring(diag_len, stiffness, (p_br, c_tr))) 
+    mss.add(Spring(diag_len, stiffness, (p_tl, c_tr))) 
+    mss.add(Spring(diag_len, stiffness, (p_bl, c_br))) 
+
+    # Update 'previous' nodes to be the 'current' ones for the next loop
+    p_bl, p_br, p_tr, p_tl = c_bl, c_br, c_tr, c_tl
+
+# --- 3. The Crane Mechanism (Cable & Load) ---
+# At this point, p_tr and p_tl are the nodes at the very tip of the crane (top).
+
+# Calculate position: End of X, Centered in Y, Hanging down from Top Z
+tip_x = num_bays * length
+load_y = width / 2.0
+load_z = height - cable_len
+
+# Create the Heavy Load
+load_node = mss.add(Mass(load_mass, (tip_x, load_y, load_z)))
+
+
+
+# Connect the Load (The Cable)
+# We attach the load to the top two corners of the crane tip
+mss.add(Spring(cable_diag, stiffness, (p_tl, load_node)))
+mss.add(Spring(cable_diag, stiffness, (p_tr, load_node)))
+```
+
+
+<img src="../results/mechsystem_results/Crane.png">
+
+The ball single mass unit on the bottom right of the crane is the load mass. It has 50 mass units, while the rest of the masses have just one mass unit. The crane, being fixed on the left side, is pulled downwards.
+
+
+## Spinning Top
+
+This example models a rigid spinning top using three mass nodes and a fixed pivot. Distance Constraints are used to enforce the rigid structure and initial velocity defines the spin.
+
+```cpp
+import math
+import numpy as np
+from mass_spring import *
+from pythreejs import *
+from time import sleep
+from IPython.display import display
+
+# --- 1. System Setup ---
+mss = MassSpringSystem3d()
+mss.gravity = (0, 0, -9.81)
+
+# Parameters
+H = 1.0          # Height of the tops body
+R = 1.0          # Radius of the top
+omega = 5.0     # Angular velocity (rad/s)
+mass_val = 1.0   # Mass of each point
+
+# --- 2. Add Objects ---
+# Pivot Point (The tip of the spinning top)
+# We treat the Pivot as a Fixed Point
+pivot = mss.add(Fix((0, 0, 0)))
+
+# Create 3 Masses arranged in a triangle at height H
+# We tilt the top slightly (by shifting X) to encourage precession
+tilt = 0.1 
+mass_nodes = []
+
+# Angles for the triangle: 0, 120, 240 degrees
+angles = [0, 2*math.pi/3, 4*math.pi/3]
+
+for theta in angles:
+    # Position (Upright + slight tilt)
+    px = R * math.cos(theta) + tilt
+    py = R * math.sin(theta)
+    pz = H
+    
+    # Add Mass
+    m_node = mss.add(Mass(mass_val, (px, py, pz)))
+    mass_nodes.append(m_node)
+    
+    # --- 3. Set Initial Velocity (Spin around Z-axis) ---
+    # v = omega x r = (-omega * y, omega * x, 0)
+    # We calculate velocity relative to the center of spin (tilt, 0, H)
+    rel_x = px - tilt
+    rel_y = py
+    
+    vx = -omega * rel_y
+    vy =  omega * rel_x
+    vz = 0.0
+    
+    # Set velocity (Requires updated C++ bindings!)
+    mss.masses[m_node.nr].vel = [vx, vy, vz]
+
+# --- 4. Add Constraints (Rigid Body Connection) ---
+ndof = 3 * len(mss.masses)
+
+# A. Connect masses to Pivot (Tip to Body)
+for m_node in mass_nodes:
+    # Calculate distance based on initial positions
+    p_pivot = np.array(mss.fixes[pivot.nr].pos)
+    p_mass = np.array(mss.masses[m_node.nr].pos)
+    dist = np.linalg.norm(p_mass - p_pivot)
+    
+    c = DistanceConstraint3d(ndof, pivot, m_node, dist, mss)
+    mss.addConstraint(c)
+
+# B. Connect masses to each other (Rigid Triangle)
+for i in range(len(mass_nodes)):
+    node_A = mass_nodes[i]
+    node_B = mass_nodes[(i + 1) % len(mass_nodes)] # Wrap around (0-1, 1-2, 2-0)
+    
+    p_A = np.array(mss.masses[node_A.nr].pos)
+    p_B = np.array(mss.masses[node_B.nr].pos)
+    dist = np.linalg.norm(p_A - p_B)
+    
+    c = DistanceConstraint3d(ndof, node_A, node_B, dist, mss)
+    mss.addConstraint(c)
+
+# --- 5. Visualization ---
+vis_masses = []
+for m in mss.masses:
+    vis_masses.append(
+        Mesh(SphereBufferGeometry(0.2, 16, 16),
+             MeshStandardMaterial(color='red'),
+             position=m.pos))
+
+vis_fixes = []
+for f in mss.fixes:
+    vis_fixes.append(
+        Mesh(SphereBufferGeometry(0.2, 16, 16),
+             MeshStandardMaterial(color='blue'),
+             position=f.pos))
+
+# Visualization Lines
+# We draw lines from Pivot to Mass and Mass to Mass
+line_pos = []
+# Pivot to Mass
+p_fix = mss.fixes[0].pos
+for m in mss.masses:
+    line_pos.append([p_fix, m.pos])
+# Mass to Mass
+for i in range(len(mss.masses)):
+    pA = mss.masses[i].pos
+    pB = mss.masses[(i+1)%3].pos
+    line_pos.append([pA, pB])
+
+constraint_lines = LineSegments2(
+    LineSegmentsGeometry(positions=line_pos),
+    LineMaterial(linewidth=2, color='black')
+)
+
+# Scene Setup
+view_width = 600
+view_height = 400
+camera = PerspectiveCamera(position=[0, -5, 0], up=[0, 0, 1], aspect=view_width/view_height)
+camera.lookAt([0, 0, H/2]) 
+
+key_light = DirectionalLight(position=[10, 10, 10])
+ambient_light = AmbientLight(intensity=0.5)
+
+scene = Scene(children=[*vis_masses, *vis_fixes, constraint_lines, camera, key_light, ambient_light])
+controller = OrbitControls(controlling=camera)
+renderer = Renderer(camera=camera, scene=scene, controls=[controller], 
+                    width=view_width, height=view_height)
+
+display(renderer)
+
+# --- 6. Simulation Loop ---
+dt = 0.01
+steps_per_frame = 100
+
+for i in range(1000):
+    mss.simulate(dt, steps_per_frame)
+    
+    # Update Visualization Positions
+    for m, mvis in zip(mss.masses, vis_masses):
+        mvis.position = (m.pos[0], m.pos[1], m.pos[2])
+        
+    # Update Lines
+    p_fix = mss.fixes[0].pos
+    new_segments = []
+    # Pivot to Masses
+    for m in mss.masses:
+        new_segments.append([p_fix, m.pos])
+    # Mass to Mass
+    for k in range(len(mss.masses)):
+        pA = mss.masses[k].pos
+        pB = mss.masses[(k+1)%3].pos
+        new_segments.append([pA, pB])
+        
+    constraint_lines.geometry = LineSegmentsGeometry(positions=new_segments)
+    
+    sleep(0.01)
+```
+<img src="../results/mechsystem_results/Kreisel.png">
+
+Here we see a render of the spinning top, with it's 3 spinning masses.
+
+## Setup Visualization Objects
+We create `pythreejs` meshes for every mass, fix, and spring currently in the `mss`.
+
+```cpp
+masses = []
+for m in mss.masses:
+    masses.append(
+        Mesh(SphereBufferGeometry(0.2, 16, 16),
+             MeshStandardMaterial(color='red'),
+             position=m.pos)) 
+
+fixes = []
+for f in mss.fixes:
+    fixes.append(
+        Mesh(SphereBufferGeometry(0.2, 32, 16),
+             MeshStandardMaterial(color='blue'),
+             position=f.pos)) 
+
+springpos = []
+for s in mss.springs:
+    pA = mss[s.connectors[0]].pos
+    pB = mss[s.connectors[1]].pos
+    springpos.append ([ pA, pB ] ) 
+
+springgeo = LineSegmentsGeometry(positions=springpos)
+m2 = LineMaterial(linewidth=3, color='cyan')
+springs = LineSegments2(springgeo, m2)    
+
+axes = AxesHelper(1)
+
+view_width = 800
+view_height = 400
+
+camera = PerspectiveCamera( position=[0, -5, 0], aspect=view_width/view_height)
+key_light = DirectionalLight(position=[0, 10, 10])
+ambient_light = AmbientLight()
+
+scene = Scene(children=[*masses, *fixes, springs, axes, camera, key_light, ambient_light])
+controller = OrbitControls(controlling=camera)
+renderer = Renderer(camera=camera, scene=scene, controls=[controller],
+                    width=view_width, height=view_height)
+
+renderer
+```
+
+## The Simulation Loop
+
+This loop steps the physics forward and updates the graphics.
+
+```cpp
+from time import sleep
+for i in range(3000):
+    mss.simulate(0.01, 100)
+    for m,mvis in zip(mss.masses, masses):
+        mvis.position = (m.pos[0], m.pos[1], m.pos[2])
+
+    springpos = []
+    for s in mss.springs:
+        pA = mss[s.connectors[0]].pos
+        pB = mss[s.connectors[1]].pos
+        springpos.append ([ pA, pB ]) 
+    springs.geometry = LineSegmentsGeometry(positions=springpos)
+    sleep(0.01)
+```
+
+
+
