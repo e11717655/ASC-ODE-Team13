@@ -299,6 +299,36 @@ namespace ASC_ode
     }
   };
 
+  class ElectricNetwork : public NonlinearFunction
+  {
+  private:
+    double R;
+    double C; 
+
+  public:
+    ElectricNetwork(double r, double c) : R(r), C(c) {}
+
+    size_t dimX() const override { return 2; }
+    size_t dimF() const override { return 2; }
+
+    void evaluate (VectorView<double> x, VectorView<double> f) const override
+    {
+      double Uc = x(0);
+      double t  = x(1);
+      f(0) = (std::cos(100.0 * M_PI * t) - Uc) / (R * C);
+      f(1) = 1.0;
+    }
+
+    void evaluateDeriv (VectorView<double> x, MatrixView<double> df) const override
+    {
+      double t = x(1);
+      df = 0.0;
+      df(0,0) = -1.0 / (R * C);
+      df(0,1) = -(100.0 * M_PI) * std::sin(100.0 * M_PI * t) / (R * C);
+      df(1,0) = 0.0;
+      df(1,1) = 0.0;
+    }
+  };
 }
 
 #endif
