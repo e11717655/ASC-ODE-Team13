@@ -336,6 +336,7 @@ public:
       f(i) = xE(i);
   }
 
+
   virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
   {
     const size_t ndof = dimX();
@@ -343,16 +344,10 @@ public:
     for (auto &c : mss.constraints())
       m += c->ncon;
 
-    //standard mass-spring
-    Vector<> F(ndof);
-    F = 0.0;
-    // Position/Force mapping
+    // --- Part 1: Force and Stiffness (Standard Mass-Spring) ---
     auto xmat = x.asMatrix(mss.masses().size(), D);
-    auto Fmat = F.asMatrix(mss.masses().size(), D);
-    // gravity
-    for (size_t i = 0; i < mss.masses().size(); i++)
-      Fmat.row(i) = mss.masses()[i].mass * mss.getGravity();
-    //springs
+    
+    // We only need K_spring for the derivative now
     Matrix<> K_spring(ndof, ndof);
     K_spring = 0.0;
 
@@ -363,27 +358,21 @@ public:
       Vec<D> p2 = (c2.type == Connector::FIX) ? mss.fixes()[c2.nr].pos : xmat.row(c2.nr);
       double dist = norm(p1 - p2);
       
-      // Force
-      double force = spring.stiffness * (dist - spring.length);
-      Vec<D> dir = (dist > 1e-12) ? (1.0 / dist) * (p2 - p1) : Vec<D>(0.0);
-      if (c1.type == Connector::MASS) Fmat.row(c1.nr) += force * dir;
-      if (c2.type == Connector::MASS) Fmat.row(c2.nr) -= force * dir;
-
-      // Stiffness
+      // We don't strictly need the Force vector F anymore, just the Stiffness K
       if (dist > 1e-12)
       {
+        Vec<D> dir = (1.0 / dist) * (p2 - p1);
         double k_e = spring.stiffness;
         double k_g = spring.stiffness * (1.0 - spring.length / dist);
         
-        // Local stiffness block
         Matrix<double> K_loc(D, D);
         for (int i = 0; i < D; i++)
           for (int j = 0; j < D; j++)
             K_loc(i, j) = (i == j ? k_g : 0.0) + (k_e - k_g) * dir(i) * dir(j);
 
-        // Assemble into global K_spring 
+        // Assemble K_spring (Negative sign because K = -dF/dx)
         if (c1.type == Connector::MASS) 
-           for (int i=0; i<D; i++) for(int j=0; j<D; j++) K_spring(c1.nr*D+i, c1.nr*D+j) -= K_loc(i,j);//negative because K = -dF/dx
+           for (int i=0; i<D; i++) for(int j=0; j<D; j++) K_spring(c1.nr*D+i, c1.nr*D+j) -= K_loc(i,j);
         
         if (c2.type == Connector::MASS) 
            for (int i=0; i<D; i++) for(int j=0; j<D; j++) K_spring(c2.nr*D+i, c2.nr*D+j) -= K_loc(i,j);
@@ -397,7 +386,7 @@ public:
       }
     }
 
-    //For the unconstrained case
+    // --- Case: Unconstrained ---
     if (m == 0)
     {
       for (size_t i = 0; i < ndof; i++)
@@ -406,19 +395,17 @@ public:
       return;
     }
 
-    // Solve KKT System for acceleration and lagrange multipliers
+    // --- Part 2: Build KKT Matrix (M, G^T; G, 0) ---
+    // Note: We no longer need to solve for 'acc' or 'lambda', so we just build the matrix.
+
     Eigen::MatrixXd AE(ndof + m, ndof + m);
-    Eigen::VectorXd bE(ndof + m);
     AE.setZero();
-    bE.setZero();
 
-    //filling Mass Matrix and Force Vector
-    for (size_t i = 0; i < ndof; i++) {
+    // Fill Mass Matrix
+    for (size_t i = 0; i < ndof; i++)
       AE(i, i) = mss.masses()[i / D].mass;
-      bE(i)    = F(i);
-    }
 
-    //constraint Jacobian G
+    // Fill Constraint Jacobian G
     Matrix<> G(m, ndof);
     G = 0.0;
     size_t row = 0;
@@ -427,7 +414,6 @@ public:
       MatrixView<double> sub_G(c->ncon, ndof, &G(row, 0));
       c->evaluateJacobian(x, sub_G);
       
-      //filling G#s in KKT matrix
       for (size_t r = 0; r < c->ncon; r++) {
         for (size_t col = 0; col < ndof; col++) {
            AE(ndof + row + r, col) = G(row + r, col); // G
@@ -436,65 +422,30 @@ public:
       }
       row += c->ncon;
     }
-    //Solve
-    Eigen::FullPivLU<Eigen::MatrixXd> solver(AE);
-    Eigen::VectorXd sol = solver.solve(bE);
-    //Extracting acc and lambda
-    Vector<> acc(ndof);
-    Vector<> lambda(m);
-    for (int i = 0; i < ndof; i++) acc(i) = sol(i);
-    for (int i = 0; i < m; i++)    lambda(i) = sol(ndof + i);
 
-    //RHS for Derivative
+    // --- Part 3: Build RHS for Derivative ---
+    // Without Hessians, RHS is simply: [ K_spring ]
+    //                                  [    0     ]
+    
     Eigen::MatrixXd RHS_deriv(ndof + m, ndof);
     RHS_deriv.setZero();
-    // H_lambda = - sum( lambda_i * Hessian(g_i) )
-    // Copy K_spring to Eigen
+
+    // Top rows: Just K_spring
     for (int i = 0; i < ndof; i++)
         for (int j = 0; j < ndof; j++)
             RHS_deriv(i, j) = K_spring(i, j);
-            
-    // Add H_lambda
-    Matrix<> H_temp(ndof, ndof);
-    row = 0;
-    for (auto &c : mss.constraints())
-    {
-      H_temp = 0.0;
-      for (int k = 0; k < c->ncon; k++)
-      {
-        c->addHessian(x, -lambda(row + k), H_temp);
-      }
-      
-      for(int i=0; i<ndof; i++)
-        for(int j=0; j<ndof; j++)
-           RHS_deriv(i,j) += H_temp(i,j);
-      row += c->ncon;
-    }
 
-    // This is effectively - Hessian(g) * a
-    Vector<> H_acc_vec(ndof);
-    row = 0;
-    for (auto &c : mss.constraints())
-    {
-      for (int k = 0; k < c->ncon; k++)
-      {
-        H_acc_vec = 0.0;
-        c->applyHessian(x, acc, H_acc_vec); // computes (d2g/dx2) * a
+    // Bottom rows: 0.0 (Implicitly zero by setZero initialization)
 
-        for (int j = 0; j < ndof; j++)
-        {
-          RHS_deriv(ndof + row + k, j) -= H_acc_vec(j);
-        }
-      }
-      row += c->ncon;
-    }
+    // --- Part 4: Final Solve ---
+    // Solve: AE * J = RHS
+    Eigen::MatrixXd J_total = AE.fullPivLu().solve(RHS_deriv);
 
-    //final solve
-    Eigen::MatrixXd J_total = solver.solve(RHS_deriv);
-    //copying result back to df
+    // Copy result back to df
     for (int i = 0; i < ndof; i++)
       for (int j = 0; j < ndof; j++)
         df(i, j) = J_total(i, j);
   }
-};
-#endif
+}; // Closing Class
+
+#endif // Closing Header
