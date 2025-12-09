@@ -933,7 +933,7 @@ We consider a mechanical system composed of point masses connected by springs an
 
 First, we extend the formulation by constraints using Lagrange multipliers. This allows us, for example, to enforce a fixed distance between two masses. For the implementation of the constraints the force evaluation in the simulation code is modified and the equations of motion are expanded by a constraint equation. The time integration scheme (Newmark method) remains unchanged.
 
-Before we dive into the how the library can be used to simulate rigid body mechanics, we will go trough the mathematical model, that makes up the foundation of this library.
+Before we dive into the how the library can be used to simulate rigid body mechanics, we will go through the mathematical model, that makes up the foundation of this library.
 
 ---
 
@@ -957,13 +957,13 @@ Each mass $i$ has position $x_i \in \mathbb{R}^D$, velocity $\dot{x}_i$, and acc
 
 Each mass is subject to external and internal forces.
 
-#### Gravity
+##### Gravity:
 
 $$
 F_i = m_i\, g.
 $$
 
-#### Spring Forces
+##### Spring Forces:
 
 For a spring between masses \(i\) and \(j\):
 
@@ -987,8 +987,8 @@ M\ddot{x} = F(x),
 $$
 
 where  
-- \(M\) is a diagonal mass matrix,  
-- \(F(x)\) is the vector of all applied forces.
+- $M$ is diagonal matrix with masses on the diagonal,  
+- $F(x)$ is the vector of applied forces.
 
 Thus the acceleration is
 
@@ -996,20 +996,20 @@ $$
 a(x) = M^{-1} F(x).
 $$
 
-This is the behavior implemented in `MSS_Function` when no constraints are added.
+This is the behavior implemented in `MSS_Function` when no constraints are added. The acceleration is what is given to the Newmark solver.
 
 ---
 
 ## 2. Adding Constraints
 
-We incorporate holonomic constraints of the form
+We now introduce a constraint of the form
 
 $$
 g(x) = 0.
 $$
 
 These constraints modify the equations of motion.  
-We introduce the Lagrangian:
+We introduce the Lagrangian as:
 
 $$
 \mathcal{L}(x,\lambda)
@@ -1017,39 +1017,27 @@ $$
 -U(x) + \lambda^T g(x).
 $$
 
-Differentiating yields two coupled equations.
-
----
-
-### 1. Modified Newton Equation
+Differentiating yields a coupled system of two equations:
 
 $$
 M\ddot{x}
 =
 -\frac{\partial U}{\partial x}
 +
-G(x)^T \lambda,
+G(x)^{T}\lambda
+\quad\text{(Modified Newton Equation)}
 $$
 
-where \(G(x)\) is the Jacobian
-
 $$
-G(x) = \frac{\partial g}{\partial x}.
-$$
-
----
-
-### 2. Constraint Equation
-
-$$
-g(x) = 0.
+g(x) = 0
+\quad\text{(Constraint Equation)}
 $$
 
 ---
 
 ### Example: Distance Constraint
 
-To keep the distance between masses \(A\) and \(B\) equal to \(L_0\):
+To enforce a distance constraint such that the distance between two masses $A$ and $B$ remains equal to some defined length $L_0$, $g(x)$ is defined as follows:
 
 $$
 g(x) = \|x_A - x_B\|^2 - L_0^2.
@@ -1067,122 +1055,29 @@ This is implemented in `DistanceConstraint`.
 
 ---
 
-## 3. Saddle-Point System
+## 3. Saddle-Point System for $\ddot{x}$ and $\lambda$
 
-Combining forces and constraints yields the KKT (saddle‑point) system:
+Adding the constraints finally leads to the linear saddle-point system
 
-$$
-\begin{bmatrix}
+\[
+\begin{pmatrix}
 M & G^T \\
 G & 0
-\end{bmatrix}
-\begin{bmatrix}
-\ddot{x} \\
-\lambda
-\end{bmatrix}
+\end{pmatrix}
+\begin{pmatrix}
+\ddot{x} \\ \lambda
+\end{pmatrix}
 =
-\begin{bmatrix}
-F(x) \\
-0
-\end{bmatrix}.
-$$
-
-The implemented version uses a stabilized formulation:
-
-$$
-\begin{bmatrix}
-M & G^T \\
-G & 0
-\end{bmatrix}
-\begin{bmatrix}
-\ddot{x} \\
-\lambda
-\end{bmatrix}
-=
-\begin{bmatrix}
-F(x) \\
--\beta\, g(x)
-\end{bmatrix},
-$$
-
-where beta is a large stabilization parameter.
-
-This system is assembled inside  
-`MSS_Function::evaluate`  
-and solved using Eigen.
-
-Only the accelerations $\ddot{x}$ are returned to the time integrator.
-
-
-## 3. Stabilization Strategy
-### 3.1 The Problem: Numerical Drift
-
-Ideally, a constraint like a rigid link requires that the distance between two masses remains exactly constant (g(x)=0). This implies that the relative acceleration along the link must be zero (g¨​=0).
-
-However, solving differential equations on a computer introduces tiny rounding errors at every time step. Without correction, these errors accumulate.
-
-### 3.2 The Solution: Simplified Baumgarte Stabilization
-
-To fix this, the code implements a stabilization term. Instead of strictly enforcing zero acceleration for the constraint
-\[
-\ddot{g} = 0,
-\]
-we enforce an acceleration that pushes the system back towards the valid state if it drifts.
-
-This acts like a stiff virtual spring that only activates when the constraint is violated. The implemented equation is:
-\[
-\ddot{g} = -\beta g(x).
+\begin{pmatrix}
+F(x) \\ -g(x)
+\end{pmatrix}.
 \]
 
-This modifies the KKT system solved in \texttt{MSS\_Function::evaluate}:
-\[
-\begin{bmatrix}
-M & G^T \\
-G & 0
-\end{bmatrix}
-\begin{bmatrix}
-\ddot{x} \\
-\lambda
-\end{bmatrix}
-=
-\begin{bmatrix}
-F(x) \\
--\beta g(x)
-\end{bmatrix}.
-\]
+Solving this system provides both:
+- the **accelerations** $\ddot{x}$, needed by the Newmark solver,
+- the **Lagrange multipliers** $\lambda$, enforcing the constraint.
 
-\subsubsection{Choice of Parameter (\(\beta = 10000\))}
-
-The code uses a stabilization factor of
-\[
-\beta = 10000.0.
-\]
-This value is chosen based on the simulation's time step.
-
-\paragraph{Dimensional Analysis}
-The parameter \( \beta \) relates a position error (meters) to a corrective acceleration (meters per second squared). Therefore, its unit is frequency squared:
-\[
-[\beta] = \frac{[\text{Acceleration}]}{[\text{Distance}]} = \frac{\text{m}/\text{s}^2}{\text{m}} = \text{s}^{-2}.
-\]
-
-\paragraph{Time Step Relationship}
-For the stabilization to be effective, it must be strong enough to correct an error within the span of a single time step \( h \). According to basic kinematics,
-\[
-x \approx \frac{1}{2} a t^2,
-\]
-the relationship is approximately:
-\[
-\beta \approx \frac{1}{h^2}.
-\]
-
-Using \( \beta = 10000 \):
-\[
-h \approx \frac{1}{\sqrt{10000}} = \frac{1}{100} = 0.01 \text{ seconds}.
-\]
-
-\paragraph{Conclusion}
-The choice of \( \beta = 10000 \) corresponds to a simulation time step of roughly \(10\,\text{ms} \) (0.01 s), which is the time step used in the numerical examples.
-
+To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations $\ddot{x}$ are then passed to the Newmark time-integration method, while the multipliers $\lambda$ are used internally to enforce the constraint.
 
 ---
 
