@@ -336,23 +336,23 @@ public:
       f(i) = xE(i);
   }
 
-  // --- EXACT ANALYTIC DERIVATIVE ---
   virtual void evaluateDeriv(VectorView<double> x, MatrixView<double> df) const override
   {
-
     const size_t ndof = dimX();
     size_t m = 0;
     for (auto &c : mss.constraints())
       m += c->ncon;
-    // --- Part 1: System Reconstruction and Force/Stiffness Calculation ---
+
+    //standard mass-spring
     Vector<> F(ndof);
     F = 0.0;
+    // Position/Force mapping
     auto xmat = x.asMatrix(mss.masses().size(), D);
     auto Fmat = F.asMatrix(mss.masses().size(), D);
+    // gravity
     for (size_t i = 0; i < mss.masses().size(); i++)
       Fmat.row(i) = mss.masses()[i].mass * mss.getGravity();
-
-    // K_spring = -d(F_spring)/d(pos)
+    //springs
     Matrix<> K_spring(ndof, ndof);
     K_spring = 0.0;
 
@@ -362,167 +362,139 @@ public:
       Vec<D> p1 = (c1.type == Connector::FIX) ? mss.fixes()[c1.nr].pos : xmat.row(c1.nr);
       Vec<D> p2 = (c2.type == Connector::FIX) ? mss.fixes()[c2.nr].pos : xmat.row(c2.nr);
       double dist = norm(p1 - p2);
+      
+      // Force
       double force = spring.stiffness * (dist - spring.length);
       Vec<D> dir = (dist > 1e-12) ? (1.0 / dist) * (p2 - p1) : Vec<D>(0.0);
+      if (c1.type == Connector::MASS) Fmat.row(c1.nr) += force * dir;
+      if (c2.type == Connector::MASS) Fmat.row(c2.nr) -= force * dir;
 
-      // Force
-      if (c1.type == Connector::MASS)
-        Fmat.row(c1.nr) += force * dir;
-      if (c2.type == Connector::MASS)
-        Fmat.row(c2.nr) -= force * dir;
-
-      // Stiffness Matrix Calculation
+      // Stiffness
       if (dist > 1e-12)
       {
-        Vec<D> n = dir;
         double k_e = spring.stiffness;
         double k_g = spring.stiffness * (1.0 - spring.length / dist);
+        
+        // Local stiffness block
         Matrix<double> K_loc(D, D);
         for (int i = 0; i < D; i++)
           for (int j = 0; j < D; j++)
-            K_loc(i, j) = (i == j ? k_g : 0.0) + (k_e - k_g) * n(i) * n(j);
+            K_loc(i, j) = (i == j ? k_g : 0.0) + (k_e - k_g) * dir(i) * dir(j);
 
-        if (c1.type == Connector::MASS && c2.type == Connector::MASS)
-        {
-          for (int i = 0; i < D; i++)
-            for (int j = 0; j < D; j++)
-            {
-              K_spring(c1.nr * D + i, c1.nr * D + j) -= K_loc(i, j);
-              K_spring(c2.nr * D + i, c2.nr * D + j) -= K_loc(i, j);
-              K_spring(c1.nr * D + i, c2.nr * D + j) += K_loc(i, j);
-              K_spring(c2.nr * D + i, c1.nr * D + j) += K_loc(i, j);
-            }
-        }
-        else if (c1.type == Connector::MASS)
-        {
-          for (int i = 0; i < D; i++)
-            for (int j = 0; j < D; j++)
-              K_spring(c1.nr * D + i, c1.nr * D + j) -= K_loc(i, j);
-        }
-        else if (c2.type == Connector::MASS)
-        {
-          for (int i = 0; i < D; i++)
-            for (int j = 0; j < D; j++)
-              K_spring(c2.nr * D + i, c2.nr * D + j) -= K_loc(i, j);
+        // Assemble into global K_spring 
+        if (c1.type == Connector::MASS) 
+           for (int i=0; i<D; i++) for(int j=0; j<D; j++) K_spring(c1.nr*D+i, c1.nr*D+j) -= K_loc(i,j);//negative because K = -dF/dx
+        
+        if (c2.type == Connector::MASS) 
+           for (int i=0; i<D; i++) for(int j=0; j<D; j++) K_spring(c2.nr*D+i, c2.nr*D+j) -= K_loc(i,j);
+        
+        if (c1.type == Connector::MASS && c2.type == Connector::MASS) {
+           for (int i=0; i<D; i++) for(int j=0; j<D; j++) {
+              K_spring(c1.nr*D+i, c2.nr*D+j) += K_loc(i,j);
+              K_spring(c2.nr*D+i, c1.nr*D+j) += K_loc(i,j);
+           }
         }
       }
     }
 
+    //For the unconstrained case
     if (m == 0)
     {
-      // Unconstrained: J = M^-1 * (-K_spring)
       for (size_t i = 0; i < ndof; i++)
         for (size_t j = 0; j < ndof; j++)
           df(i, j) = K_spring(i, j) / mss.masses()[i / D].mass;
       return;
     }
 
-    // --- Part 2: Solve KKT System for State (acc, lambda) ---
-    Matrix<> Mmat(ndof, ndof);
-    Mmat = 0.0;
-    for (size_t i = 0; i < ndof; i++)
-      Mmat(i, i) = mss.masses()[i / D].mass;
+    // Solve KKT System for acceleration and lagrange multipliers
+    Eigen::MatrixXd AE(ndof + m, ndof + m);
+    Eigen::VectorXd bE(ndof + m);
+    AE.setZero();
+    bE.setZero();
 
-    Vector<> gx(m);
+    //filling Mass Matrix and Force Vector
+    for (size_t i = 0; i < ndof; i++) {
+      AE(i, i) = mss.masses()[i / D].mass;
+      bE(i)    = F(i);
+    }
+
+    //constraint Jacobian G
     Matrix<> G(m, ndof);
-    gx = 0.0;
     G = 0.0;
     size_t row = 0;
     for (auto &c : mss.constraints())
     {
-      VectorView<double> sub_gx(c->ncon, &gx(row));
       MatrixView<double> sub_G(c->ncon, ndof, &G(row, 0));
-      c->evaluateG(x, sub_gx);
       c->evaluateJacobian(x, sub_G);
+      
+      //filling G#s in KKT matrix
+      for (size_t r = 0; r < c->ncon; r++) {
+        for (size_t col = 0; col < ndof; col++) {
+           AE(ndof + row + r, col) = G(row + r, col); // G
+           AE(col, ndof + row + r) = G(row + r, col); // G^T
+        }
+      }
       row += c->ncon;
     }
-    // A_KKT (M, G^T; G, 0)
-    Matrix<> A_KKT(ndof + m, ndof + m);
-    A_KKT = 0.0;
-    for (size_t i = 0; i < ndof; i++)
-      A_KKT(i, i) = Mmat(i, i);
-    for (size_t r = 0; r < m; r++)
-      for (size_t c = 0; c < ndof; c++)
-      {
-        A_KKT(c, ndof + r) = G(r, c);
-        A_KKT(ndof + r, c) = G(r, c);
-      }
-
-    Eigen::MatrixXd AE(ndof + m, ndof + m);
-    Eigen::VectorXd bE(ndof + m);
-    double beta = 10000.0;
-
-    for (int i = 0; i < ndof + m; i++)
-      for (int j = 0; j < ndof + m; j++)
-        AE(i, j) = A_KKT(i, j);
-    for (int i = 0; i < ndof; i++)
-      bE(i) = F(i);
-    for (int i = 0; i < m; i++)
-      bE(ndof + i) = -beta * gx(i);
-
-    Eigen::VectorXd sol = AE.fullPivLu().solve(bE);
+    //Solve
+    Eigen::FullPivLU<Eigen::MatrixXd> solver(AE);
+    Eigen::VectorXd sol = solver.solve(bE);
+    //Extracting acc and lambda
     Vector<> acc(ndof);
     Vector<> lambda(m);
+    for (int i = 0; i < ndof; i++) acc(i) = sol(i);
+    for (int i = 0; i < m; i++)    lambda(i) = sol(ndof + i);
+
+    //RHS for Derivative
+    Eigen::MatrixXd RHS_deriv(ndof + m, ndof);
+    RHS_deriv.setZero();
+    // H_lambda = - sum( lambda_i * Hessian(g_i) )
+    // Copy K_spring to Eigen
     for (int i = 0; i < ndof; i++)
-      acc(i) = sol(i);
-    for (int i = 0; i < m; i++)
-      lambda(i) = sol(ndof + i);
-
-    // --- Part 3: Build RHS Matrix for Differentiated KKT System ---
-
-    // A. Geometric Stiffness H_lambda = -sum(lambda_k * Hessian(g_k))
-    Matrix<> H_lambda(ndof, ndof);
-    H_lambda = 0.0;
+        for (int j = 0; j < ndof; j++)
+            RHS_deriv(i, j) = K_spring(i, j);
+            
+    // Add H_lambda
+    Matrix<> H_temp(ndof, ndof);
     row = 0;
     for (auto &c : mss.constraints())
     {
+      H_temp = 0.0;
       for (int k = 0; k < c->ncon; k++)
       {
-        c->addHessian(x, -lambda(row + k), H_lambda);
+        c->addHessian(x, -lambda(row + k), H_temp);
       }
+      
+      for(int i=0; i<ndof; i++)
+        for(int j=0; j<ndof; j++)
+           RHS_deriv(i,j) += H_temp(i,j);
       row += c->ncon;
     }
 
+    // This is effectively - Hessian(g) * a
     Vector<> H_acc_vec(ndof);
-
-    Eigen::MatrixXd RHS_mat(ndof + m, ndof);
-    RHS_mat.setZero();
-
-    for (int i = 0; i < ndof; i++)
-      for (int j = 0; j < ndof; j++)
-        RHS_mat(i, j) = K_spring(i, j) + H_lambda(i, j);
-
-    // beta * G:
-    for (int r = 0; r < m; r++)
-      for (int c = 0; c < ndof; c++)
-        RHS_mat(ndof + r, c) = -beta * G(r, c);
-
-    // dG * a:
     row = 0;
     for (auto &c : mss.constraints())
     {
       for (int k = 0; k < c->ncon; k++)
       {
         H_acc_vec = 0.0;
-        c->applyHessian(x, acc, H_acc_vec);
+        c->applyHessian(x, acc, H_acc_vec); // computes (d2g/dx2) * a
 
         for (int j = 0; j < ndof; j++)
         {
-          RHS_mat(ndof + row + k, j) -= H_acc_vec(j);
+          RHS_deriv(ndof + row + k, j) -= H_acc_vec(j);
         }
       }
       row += c->ncon;
     }
 
-    // --- Part 4: Solve for Jacobian and Extract ---
-
-    // Solve A_KKT * J_total = RHS_mat
-    Eigen::MatrixXd J_total = AE.fullPivLu().solve(RHS_mat);
-
+    //final solve
+    Eigen::MatrixXd J_total = solver.solve(RHS_deriv);
+    //copying result back to df
     for (int i = 0; i < ndof; i++)
       for (int j = 0; j < ndof; j++)
         df(i, j) = J_total(i, j);
   }
 };
-
 #endif
