@@ -426,11 +426,11 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-distance-constraint">Example: Distance Constraint</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system-for-ddot-x-and-lambda">3. Saddle-Point System for <span class="math notranslate nohighlight">\(\ddot{x}\)</span> and <span class="math notranslate nohighlight">\(\lambda\)</span></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">2. Analytic Derivative of Acceleration</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-contribution-k-text-spring">2.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">2.2 Unconstrained Case</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-case">2.3 Constrained Case</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system-for-ddot-x-and-lambda">3. Saddle-Point System for <span class="math notranslate nohighlight">\(\ddot{x}\)</span> and <span class="math notranslate nohighlight">\(\lambda\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">4. Analytic Derivative of Acceleration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-contribution-k-text-spring">4.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">4.2 Unconstrained Case</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-case">4.3 Constrained Case</a></li>
 </ul>
 </li>
 </ul>
@@ -1425,40 +1425,39 @@ g(x) = \|x_A - x_B\|^2 - L_0^2.
 <section id="saddle-point-system-for-ddot-x-and-lambda">
 <h2>3. Saddle-Point System for <span class="math notranslate nohighlight">\(\ddot{x}\)</span> and <span class="math notranslate nohighlight">\(\lambda\)</span><a class="headerlink" href="#saddle-point-system-for-ddot-x-and-lambda" title="Link to this heading">#</a></h2>
 <p>Adding the constraints finally leads to the linear saddle-point system</p>
-<p>[</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9f2796d9-ca14-490d-9436-a4123cdf68da">
-<span class="eqno">(1)<a class="headerlink" href="#equation-9f2796d9-ca14-490d-9436-a4123cdf68da" title="Permalink to this equation">#</a></span>\[\begin{pmatrix}
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{pmatrix}
 M &amp; G^T \\
 G &amp; 0
-\end{pmatrix}\]</div>
-<div class="amsmath math notranslate nohighlight" id="equation-df3f6a71-42c5-43ec-8fa7-47249c82c8ac">
-<span class="eqno">(2)<a class="headerlink" href="#equation-df3f6a71-42c5-43ec-8fa7-47249c82c8ac" title="Permalink to this equation">#</a></span>\[\begin{pmatrix}
-\ddot{x} \\ \lambda
-\end{pmatrix}\]</div>
-<p>=
+\end{pmatrix}
 \begin{pmatrix}
-F(x) \ -g(x)
+\ddot{x} \\ \lambda
+\end{pmatrix}
+=
+\begin{pmatrix}
+F(x) \\ -g(x)
 \end{pmatrix}.
-]</p>
+\end{split}\]</div>
 <p>Solving this system provides both:</p>
 <ul class="simple">
 <li><p>the <strong>accelerations</strong> <span class="math notranslate nohighlight">\(\ddot{x}\)</span>, needed by the Newmark solver,</p></li>
 <li><p>the <strong>Lagrange multipliers</strong> <span class="math notranslate nohighlight">\(\lambda\)</span>, enforcing the constraint.</p></li>
 </ul>
 <p>To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations <span class="math notranslate nohighlight">\(\ddot{x}\)</span> are then passed to the Newmark time-integration method, while the multipliers <span class="math notranslate nohighlight">\(\lambda\)</span> are used internally to enforce the constraint.</p>
+</section>
 <hr class="docutils" />
 <section id="analytic-derivative-of-acceleration">
-<h3>2. Analytic Derivative of Acceleration<a class="headerlink" href="#analytic-derivative-of-acceleration" title="Link to this heading">#</a></h3>
+<h2>4. Analytic Derivative of Acceleration<a class="headerlink" href="#analytic-derivative-of-acceleration" title="Link to this heading">#</a></h2>
 <p>The C++ function <code class="docutils literal notranslate"><span class="pre">evaluateDeriv</span></code> computes the Jacobian to solve a mass-spring system for both constrainted and unconstrained cases:</p>
 <div class="math notranslate nohighlight">
 \[
 J = \frac{\partial \ddot{x}}{\partial x}
 \]</div>
-</section>
 <hr class="docutils" />
 <section id="spring-contribution-k-text-spring">
-<h3>2.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)<a class="headerlink" href="#spring-contribution-k-text-spring" title="Link to this heading">#</a></h3>
-<p>For each spring connecting points <span class="math notranslate nohighlight">\(p_1, p_2&amp;  with stiffness \)</span>k<span class="math notranslate nohighlight">\( and lenght of the string at rest defined as \)</span>\ell<span class="math notranslate nohighlight">\(, the code defines the current length \)</span>d = |p_2 - p_1|<span class="math notranslate nohighlight">\( and unit direction \)</span>\text{dir} = (p_2 - p_1)/d$.</p>
+<h3>4.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)<a class="headerlink" href="#spring-contribution-k-text-spring" title="Link to this heading">#</a></h3>
+<p>For each spring connecting points <span class="math notranslate nohighlight">\(p_1, p_2\)</span>  with stiffness <span class="math notranslate nohighlight">\(k\)</span> and lenght of the string at rest defined as <span class="math notranslate nohighlight">\(\ell\)</span>, the code defines the current length <span class="math notranslate nohighlight">\(d = \|p_2 - p_1\|\)</span> and unit direction <span class="math notranslate nohighlight">\(\text{dir} = (p_2 - p_1)/d\)</span>.</p>
 <p>The local stiffness scalars are defined as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1477,7 +1476,7 @@ K_\text{spring} = \frac{\partial F_\text{spring}}{\partial x}(x).
 </section>
 <hr class="docutils" />
 <section id="unconstrained-case">
-<h3>2.2 Unconstrained Case<a class="headerlink" href="#unconstrained-case" title="Link to this heading">#</a></h3>
+<h3>4.2 Unconstrained Case<a class="headerlink" href="#unconstrained-case" title="Link to this heading">#</a></h3>
 <p>If there are no constraints (<span class="math notranslate nohighlight">\(m = 0\)</span>), with <span class="math notranslate nohighlight">\(m\)</span> being the number of constraints, the equations of motion are defined as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1491,7 +1490,7 @@ J = \frac{\partial \ddot{x}}{\partial x} = M^{-1} K_\text{spring}.
 </section>
 <hr class="docutils" />
 <section id="constrained-case">
-<h3>2.3 Constrained Case<a class="headerlink" href="#constrained-case" title="Link to this heading">#</a></h3>
+<h3>4.3 Constrained Case<a class="headerlink" href="#constrained-case" title="Link to this heading">#</a></h3>
 <p>If constraints exist, the function builds the KKT matrix <span class="math notranslate nohighlight">\(AE\)</span>, where <span class="math notranslate nohighlight">\(M\)</span> is the diagonal mass matrix and <span class="math notranslate nohighlight">\(G\)</span> is the constraint Jacobian:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1835,11 +1834,11 @@ the <strong>Double Pendulum</strong> and the <strong>Spinning Top</strong>.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-distance-constraint">Example: Distance Constraint</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system-for-ddot-x-and-lambda">3. Saddle-Point System for <span class="math notranslate nohighlight">\(\ddot{x}\)</span> and <span class="math notranslate nohighlight">\(\lambda\)</span></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">2. Analytic Derivative of Acceleration</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-contribution-k-text-spring">2.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">2.2 Unconstrained Case</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-case">2.3 Constrained Case</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system-for-ddot-x-and-lambda">3. Saddle-Point System for <span class="math notranslate nohighlight">\(\ddot{x}\)</span> and <span class="math notranslate nohighlight">\(\lambda\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">4. Analytic Derivative of Acceleration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-contribution-k-text-spring">4.1 Spring Contribution (<span class="math notranslate nohighlight">\(K_\text{spring}\)</span>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">4.2 Unconstrained Case</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-case">4.3 Constrained Case</a></li>
 </ul>
 </li>
 </ul>
@@ -1869,7 +1868,7 @@ the <strong>Double Pendulum</strong> and the <strong>Spinning Top</strong>.</p>
   <div class="footer-item">
     
 <p class="component-author">
-By Joe Smith
+By Carina Meinke, Timur Demerci, Gregor Samonig, Simon Wollendorfer
 </p>
 
   </div>

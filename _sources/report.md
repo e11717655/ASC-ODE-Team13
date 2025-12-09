@@ -1059,7 +1059,7 @@ This is implemented in `DistanceConstraint`.
 
 Adding the constraints finally leads to the linear saddle-point system
 
-\[
+$$
 \begin{pmatrix}
 M & G^T \\
 G & 0
@@ -1071,7 +1071,7 @@ G & 0
 \begin{pmatrix}
 F(x) \\ -g(x)
 \end{pmatrix}.
-\]
+$$
 
 Solving this system provides both:
 - the **accelerations** $\ddot{x}$, needed by the Newmark solver,
@@ -1080,7 +1080,7 @@ Solving this system provides both:
 To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations $\ddot{x}$ are then passed to the Newmark time-integration method, while the multipliers $\lambda$ are used internally to enforce the constraint.
 
 ---
-### 2. Analytic Derivative of Acceleration
+## 4. Analytic Derivative of Acceleration
 
 The C++ function `evaluateDeriv` computes the Jacobian to solve a mass-spring system for both constrainted and unconstrained cases:
 
@@ -1090,9 +1090,9 @@ $$
 
 ---
 
-### 2.1 Spring Contribution ($K_\text{spring}$)
+### 4.1 Spring Contribution ($K_\text{spring}$)
 
-For each spring connecting points $p_1, p_2&  with stiffness $k$ and lenght of the string at rest defined as $\ell$, the code defines the current length $d = \|p_2 - p_1\|$ and unit direction $\text{dir} = (p_2 - p_1)/d$.
+For each spring connecting points $p_1, p_2$  with stiffness $k$ and lenght of the string at rest defined as $\ell$, the code defines the current length $d = \|p_2 - p_1\|$ and unit direction $\text{dir} = (p_2 - p_1)/d$.
 
 The local stiffness scalars are defined as:
 
@@ -1114,7 +1114,7 @@ $$
 
 ---
 
-### 2.2 Unconstrained Case
+### 4.2 Unconstrained Case
 
 If there are no constraints ($m = 0$), with $m$ being the number of constraints, the equations of motion are defined as:
 
@@ -1130,7 +1130,7 @@ $$
 
 ---
 
-### 2.3 Constrained Case
+### 4.3 Constrained Case
 
 If constraints exist, the function builds the KKT matrix $AE$, where $M$ is the diagonal mass matrix and $G$ is the constraint Jacobian:
 
