@@ -1080,76 +1080,68 @@ Solving this system provides both:
 To avoid modifying the Newmark solver, the linear saddle-point system is solved using a linear solver from the Eigen library. Only the accelerations $\ddot{x}$ are then passed to the Newmark time-integration method, while the multipliers $\lambda$ are used internally to enforce the constraint.
 
 ---
+### 2. Analytic Derivative of Acceleration
 
-# 2. Analytic Derivative of Acceleration
+The C++ function `evaluateDeriv` computes the Jacobian to solve a mass-spring system for both constrainted and unconstrained cases:
 
-The C++ function `evaluateDeriv` computes the **analytic Jacobian** $\mathbf{J} = \frac{\partial \ddot{\mathbf{x}}}{\partial \mathbf{x}}$ (derivative of acceleration with respect to position) for a constrained Mass-Spring System (MSS) using Implicit Differentiation.
+$$
+J = \frac{\partial \ddot{x}}{\partial x}
+$$
 
 ---
 
-## 2.1 Solving the Original KKT System
+### 2.1 Spring Contribution ($K_\text{spring}$)
 
-The code first solves the standard KKT system for the current position x:
+For each spring connecting points $p_1, p_2&  with stiffness $k$ and lenght of the string at rest defined as $\ell$, the code defines the current length $d = \|p_2 - p_1\|$ and unit direction $\text{dir} = (p_2 - p_1)/d$.
 
-$$
-A_{KKT} \, s = b(x)
-$$
-
-where
+The local stiffness scalars are defined as:
 
 $$
-s = \begin{pmatrix}
-\ddot{x} \\
-\lambda
-\end{pmatrix}
+k_e = k, \qquad k_g = k\left(1 - \frac{\ell}{d}\right).
 $$
 
-represents the accelerations and constraint multipliers.
+These are used to compute the local matrix:
+
+$$
+K_\text{loc} = k_g I_D + (k_e - k_g)\,\text{dir}\,\text{dir}^\top.
+$$
+
+The global matrix $K_\text{spring} \in \mathbb{R}^{n_\text{dof} \times n_\text{dof}}$ is assembled by adding $-K_\text{loc}$ to the diagonal blocks of the connected masses and $+K_\text{loc}$ to the off-diagonal blocks, yielding:
+
+$$
+K_\text{spring} = \frac{\partial F_\text{spring}}{\partial x}(x).
+$$
 
 ---
 
-## 2.2 Solving the Differentiated System
+### 2.2 Unconstrained Case
 
-To compute the derivative ds/dx, we solve:
+If there are no constraints ($m = 0$), with $m$ being the number of constraints, the equations of motion are defined as:
 
 $$
-A_{KKT} \, J_{total} = RHS_{matrix}
+M \ddot{x} = F(x) \quad\Rightarrow\quad \ddot{x}(x) = M^{-1} F(x).
 $$
 
-Here:
+Therefore, the Jacobian is computed by row-wise division of $K_\text{spring}$ by the corresponding masses:
 
-- **A_{KKT}**: the original KKT matrix  
-- **J_{total}**: the matrix ds/dx, whose top block is the desired Jacobian J  
-- **RHS_{matrix}**: contains derivatives of forces and constraints with respect to x
+$$
+J = \frac{\partial \ddot{x}}{\partial x} = M^{-1} K_\text{spring}.
+$$
 
 ---
 
-## 2.3 Components of RHS_matrix
+### 2.3 Constrained Case
 
-RHS_matrix consists of:
-
-### Spring stiffness (K_spring)
+If constraints exist, the function builds the KKT matrix $AE$, where $M$ is the diagonal mass matrix and $G$ is the constraint Jacobian:
 
 $$
-K_{spring} = - \frac{d F_{spring}}{d x}
+AE = \begin{pmatrix} M & G^\top \\ G & 0 \end{pmatrix}.
 $$
 
-### Constraint force derivatives ($H_{\lambda}$):
-
-These come from constraint Hessians, scaled by the multipliers lambda.
-
-### Constraint Jacobian derivatives
-
-Terms involving $dG/dx$, where G is the constraint Jacobian.
-
----
-
-## 2.4 Unconstrained Case
-
-If the system has no constraints (G = 0), the Jacobian becomes:
+The system solves for the total Jacobian $J_{\text{total}}$ using a right-hand side composed of $K_\text{spring}$:
 
 $$
-J = M^{-1} \, ( - K_{spring} )
+\begin{pmatrix} M & G^\top \\ G & 0 \end{pmatrix} \begin{pmatrix} J \\ J_\lambda \end{pmatrix} = \begin{pmatrix} K_\text{spring} \\ 0 \end{pmatrix}.
 $$
 
 ---
