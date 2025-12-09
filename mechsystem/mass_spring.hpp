@@ -19,7 +19,6 @@ public:
   Vec<D> vel = 0.0;
   Vec<D> acc = 0.0;
 };
-
 template <int D>
 class Fix
 {
@@ -274,11 +273,12 @@ public:
         A(ndof + r, c) = G(r, c);
       }
 
-    double beta = 10000.0;
+
     for (size_t i = 0; i < ndof; ++i)
       rhs(i) = F(i);
+      
     for (size_t j = 0; j < m; ++j)
-      rhs(ndof + j) = -beta * gx(j);
+      rhs(ndof + j) = 0.0;
 
     Eigen::MatrixXd AE(ndof + m, ndof + m);
     Eigen::VectorXd bE(ndof + m);
@@ -377,7 +377,6 @@ public:
       }
       row += c->ncon;
     }
-
     //Build RHS for Derivative
     Eigen::MatrixXd RHS_deriv(ndof + m, ndof);
     RHS_deriv.setZero();
