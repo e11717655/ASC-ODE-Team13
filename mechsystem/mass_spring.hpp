@@ -188,8 +188,9 @@ public:
         G(0, c2.nr * D + d) = -2.0 * diff(d);
     }
   }
-}
+};
 //Function Evaluatortemplate <int D>
+template <int D>
 class MSS_Function : public NonlinearFunction
 {
   MassSpringSystem<D> &mss;
