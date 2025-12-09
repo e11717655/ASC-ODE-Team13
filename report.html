@@ -411,6 +411,47 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-20-4-1-mass-spring-system">Exercise 20.4.1 Mass-spring system</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#original-mathematical-model">1. Original Mathematical Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#system-state">System State</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forces">Forces</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gravity">Gravity</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-forces">Spring Forces</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equations-of-motion-unconstrained">Equations of Motion (Unconstrained)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-constraints">2. Adding Constraints</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modified-newton-equation">1. Modified Newton Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-equation">2. Constraint Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-distance-constraint">Example: Distance Constraint</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system">3. Saddle-Point System</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">2. Analytic Derivative of Acceleration</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-original-kkt-system">2.1 Solving the Original KKT System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-differentiated-system">2.2 Solving the Differentiated System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components-of-rhs-matrix">2.3 Components of RHS_matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-stiffness-k-spring">Spring stiffness (K_spring)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-force-derivatives-h-lambda">Constraint force derivatives (<span class="math notranslate nohighlight">\(H_{\lambda}\)</span>):</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-jacobian-derivatives">Constraint Jacobian derivatives</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">2.4 Unconstrained Case</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#double-pendulum">Double Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-pendulum">Chain Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crane">Crane</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spinning-top">Spinning Top</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-visualization-objects">Setup Visualization Objects</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-simulation-loop">The Simulation Loop</a></li>
+</ul>
+</li>
 </ul>
 
             </nav>
@@ -1275,6 +1316,594 @@ Both methods are computationally more expensive than the Explicit Methods due to
 </section>
 </section>
 </section>
+<section class="tex2jax_ignore mathjax_ignore" id="exercise-20-4-1-mass-spring-system">
+<h1>Exercise 20.4.1 Mass-spring system<a class="headerlink" href="#exercise-20-4-1-mass-spring-system" title="Link to this heading">#</a></h1>
+<p>We consider a mechanical system composed of point masses connected by springs and possibly fixed supports.</p>
+<p>First, we extend the formulation by constraints using Lagrange multipliers. This allows us, for example, to enforce a fixed distance between two masses. For the implementation of the constraints the force evaluation in the simulation code is modified and the equations of motion are expanded by a constraint equation. The time integration scheme (Newmark method) remains unchanged.</p>
+<p>Before we dive into the how the library can be used to simulate rigid body mechanics, we will go trough the mathematical model, that makes up the foundation of this library.</p>
+<hr class="docutils" />
+<section id="original-mathematical-model">
+<h2>1. Original Mathematical Model<a class="headerlink" href="#original-mathematical-model" title="Link to this heading">#</a></h2>
+<section id="system-state">
+<h3>System State<a class="headerlink" href="#system-state" title="Link to this heading">#</a></h3>
+<p>We simulate <span class="math notranslate nohighlight">\(N\)</span> point masses in a space of dimension <span class="math notranslate nohighlight">\(D\)</span>.</p>
+<p>The full position vector is</p>
+<div class="math notranslate nohighlight">
+\[
+x \in \mathbb{R}^{n}, \qquad n = D \cdot N,
+\]</div>
+<p>Each mass <span class="math notranslate nohighlight">\(i\)</span> has position <span class="math notranslate nohighlight">\(x_i \in \mathbb{R}^D\)</span>, velocity <span class="math notranslate nohighlight">\(\dot{x}_i\)</span>, and acceleration <span class="math notranslate nohighlight">\(\ddot{x}_i\)</span>.</p>
+</section>
+<hr class="docutils" />
+<section id="forces">
+<h3>Forces<a class="headerlink" href="#forces" title="Link to this heading">#</a></h3>
+<p>Each mass is subject to external and internal forces.</p>
+<section id="gravity">
+<h4>Gravity<a class="headerlink" href="#gravity" title="Link to this heading">#</a></h4>
+<div class="math notranslate nohighlight">
+\[
+F_i = m_i\, g.
+\]</div>
+</section>
+<section id="spring-forces">
+<h4>Spring Forces<a class="headerlink" href="#spring-forces" title="Link to this heading">#</a></h4>
+<p>For a spring between masses (i) and (j):</p>
+<div class="math notranslate nohighlight">
+\[
+F_{ij}
+=
+k\bigl(\|x_i - x_j\| - L_0\bigr)\,
+\frac{x_j - x_i}{\|x_j - x_i\|}.
+\]</div>
+<p>This contributes to the global force vector (F(x)).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="equations-of-motion-unconstrained">
+<h3>Equations of Motion (Unconstrained)<a class="headerlink" href="#equations-of-motion-unconstrained" title="Link to this heading">#</a></h3>
+<p>Without constraints, the dynamics satisfy</p>
+<div class="math notranslate nohighlight">
+\[
+M\ddot{x} = F(x),
+\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p>(M) is a diagonal mass matrix,</p></li>
+<li><p>(F(x)) is the vector of all applied forces.</p></li>
+</ul>
+<p>Thus the acceleration is</p>
+<div class="math notranslate nohighlight">
+\[
+a(x) = M^{-1} F(x).
+\]</div>
+<p>This is the behavior implemented in <code class="docutils literal notranslate"><span class="pre">MSS_Function</span></code> when no constraints are added.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="adding-constraints">
+<h2>2. Adding Constraints<a class="headerlink" href="#adding-constraints" title="Link to this heading">#</a></h2>
+<p>We incorporate holonomic constraints of the form</p>
+<div class="math notranslate nohighlight">
+\[
+g(x) = 0.
+\]</div>
+<p>These constraints modify the equations of motion.<br />
+We introduce the Lagrangian:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}(x,\lambda)
+=
+-U(x) + \lambda^T g(x).
+\]</div>
+<p>Differentiating yields two coupled equations.</p>
+<hr class="docutils" />
+<section id="modified-newton-equation">
+<h3>1. Modified Newton Equation<a class="headerlink" href="#modified-newton-equation" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[
+M\ddot{x}
+=
+-\frac{\partial U}{\partial x}
++
+G(x)^T \lambda,
+\]</div>
+<p>where (G(x)) is the Jacobian</p>
+<div class="math notranslate nohighlight">
+\[
+G(x) = \frac{\partial g}{\partial x}.
+\]</div>
+</section>
+<hr class="docutils" />
+<section id="constraint-equation">
+<h3>2. Constraint Equation<a class="headerlink" href="#constraint-equation" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[
+g(x) = 0.
+\]</div>
+</section>
+<hr class="docutils" />
+<section id="example-distance-constraint">
+<h3>Example: Distance Constraint<a class="headerlink" href="#example-distance-constraint" title="Link to this heading">#</a></h3>
+<p>To keep the distance between masses (A) and (B) equal to (L_0):</p>
+<div class="math notranslate nohighlight">
+\[
+g(x) = \|x_A - x_B\|^2 - L_0^2.
+\]</div>
+<p>Then</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial g}{\partial x_A} = 2(x_A - x_B),
+\qquad
+\frac{\partial g}{\partial x_B} = -2(x_A - x_B).
+\]</div>
+<p>This is implemented in <code class="docutils literal notranslate"><span class="pre">DistanceConstraint</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="saddle-point-system">
+<h2>3. Saddle-Point System<a class="headerlink" href="#saddle-point-system" title="Link to this heading">#</a></h2>
+<p>Combining forces and constraints yields the KKT (saddle‑point) system:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{bmatrix}
+M &amp; G^T \\
+G &amp; 0
+\end{bmatrix}
+\begin{bmatrix}
+\ddot{x} \\
+\lambda
+\end{bmatrix}
+=
+\begin{bmatrix}
+F(x) \\
+0
+\end{bmatrix}.
+\end{split}\]</div>
+<p>The implemented version uses a stabilized formulation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{bmatrix}
+M &amp; G^T \\
+G &amp; 0
+\end{bmatrix}
+\begin{bmatrix}
+\ddot{x} \\
+\lambda
+\end{bmatrix}
+=
+\begin{bmatrix}
+F(x) \\
+-\beta\, g(x)
+\end{bmatrix},
+\end{split}\]</div>
+<p>where beta is a large stabilization parameter.</p>
+<p>This system is assembled inside<br />
+<code class="docutils literal notranslate"><span class="pre">MSS_Function::evaluate</span></code><br />
+and solved using Eigen.</p>
+<p>Only the accelerations <span class="math notranslate nohighlight">\(\ddot{x}\)</span> are returned to the time integrator.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="analytic-derivative-of-acceleration">
+<h1>2. Analytic Derivative of Acceleration<a class="headerlink" href="#analytic-derivative-of-acceleration" title="Link to this heading">#</a></h1>
+<p>The C++ function <code class="docutils literal notranslate"><span class="pre">evaluateDeriv</span></code> computes the <strong>analytic Jacobian</strong> <span class="math notranslate nohighlight">\(\mathbf{J} = \frac{\partial \ddot{\mathbf{x}}}{\partial \mathbf{x}}\)</span> (derivative of acceleration with respect to position) for a constrained Mass-Spring System (MSS) using Implicit Differentiation.</p>
+<hr class="docutils" />
+<section id="solving-the-original-kkt-system">
+<h2>2.1 Solving the Original KKT System<a class="headerlink" href="#solving-the-original-kkt-system" title="Link to this heading">#</a></h2>
+<p>The code first solves the standard KKT system for the current position x:</p>
+<div class="math notranslate nohighlight">
+\[
+A_{KKT} \, s = b(x)
+\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+s = \begin{pmatrix}
+\ddot{x} \\
+\lambda
+\end{pmatrix}
+\end{split}\]</div>
+<p>represents the accelerations and constraint multipliers.</p>
+</section>
+<hr class="docutils" />
+<section id="solving-the-differentiated-system">
+<h2>2.2 Solving the Differentiated System<a class="headerlink" href="#solving-the-differentiated-system" title="Link to this heading">#</a></h2>
+<p>To compute the derivative ds/dx, we solve:</p>
+<div class="math notranslate nohighlight">
+\[
+A_{KKT} \, J_{total} = RHS_{matrix}
+\]</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><strong>A_{KKT}</strong>: the original KKT matrix</p></li>
+<li><p><strong>J_{total}</strong>: the matrix ds/dx, whose top block is the desired Jacobian J</p></li>
+<li><p><strong>RHS_{matrix}</strong>: contains derivatives of forces and constraints with respect to x</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="components-of-rhs-matrix">
+<h2>2.3 Components of RHS_matrix<a class="headerlink" href="#components-of-rhs-matrix" title="Link to this heading">#</a></h2>
+<p>RHS_matrix consists of:</p>
+<section id="spring-stiffness-k-spring">
+<h3>Spring stiffness (K_spring)<a class="headerlink" href="#spring-stiffness-k-spring" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[
+K_{spring} = - \frac{d F_{spring}}{d x}
+\]</div>
+</section>
+<section id="constraint-force-derivatives-h-lambda">
+<h3>Constraint force derivatives (<span class="math notranslate nohighlight">\(H_{\lambda}\)</span>):<a class="headerlink" href="#constraint-force-derivatives-h-lambda" title="Link to this heading">#</a></h3>
+<p>These come from constraint Hessians, scaled by the multipliers lambda.</p>
+</section>
+<section id="constraint-jacobian-derivatives">
+<h3>Constraint Jacobian derivatives<a class="headerlink" href="#constraint-jacobian-derivatives" title="Link to this heading">#</a></h3>
+<p>Terms involving <span class="math notranslate nohighlight">\(dG/dx\)</span>, where G is the constraint Jacobian.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="unconstrained-case">
+<h2>2.4 Unconstrained Case<a class="headerlink" href="#unconstrained-case" title="Link to this heading">#</a></h2>
+<p>If the system has no constraints (G = 0), the Jacobian becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+J = M^{-1} \, ( - K_{spring} )
+\]</div>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h1>
+<p>In this section we will showcase some examples of what you can do with the library. We will define three different physical scenarios: The Double Pendulum, a Chain, a Crane and a Spinning Top. Then we use a single Universal Simulation Loop to run and visualize them.</p>
+<section id="double-pendulum">
+<h2>Double Pendulum<a class="headerlink" href="#double-pendulum" title="Link to this heading">#</a></h2>
+<p>In this example we define 2 masses connected via a constraint.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#for a 2 mass pendulum</span>
+<span class="n">mss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MassSpringSystem3d</span><span class="p">()</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">gravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">-9.81</span><span class="p">)</span>
+<span class="n">use_constraint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">True</span>
+<span class="n">mA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="w"> </span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span>
+<span class="n">mB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="w"> </span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)))</span>
+<span class="n">f1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="w"> </span><span class="p">(</span><span class="n">Fix</span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="p">)</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="w"> </span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">200000</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">,</span><span class="w"> </span><span class="n">mA</span><span class="p">)))</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="w"> </span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">100000</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">mA</span><span class="p">,</span><span class="w"> </span><span class="n">mB</span><span class="p">)))</span>
+</pre></div>
+</div>
+<img alt="_images/Double_Pendulum.png" src="_images/Double_Pendulum.png" />
+<p>Here we can see a render of the Double Pendulum.</p>
+</section>
+<section id="chain-pendulum">
+<h2>Chain Pendulum<a class="headerlink" href="#chain-pendulum" title="Link to this heading">#</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">mss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MassSpringSystem3d</span><span class="p">()</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">gravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">-9.81</span><span class="p">)</span>
+
+<span class="n">use_constraint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">True</span>
+
+
+<span class="n">number_of_masses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">starting_position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">length_chain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">single_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length_chain</span><span class="o">/</span><span class="n">number_of_masses</span>
+
+<span class="n">prev_obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">(</span><span class="n">starting_position</span><span class="p">))</span><span class="err">#</span><span class="n">to</span><span class="w"> </span><span class="n">store</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">previous</span><span class="w"> </span><span class="n">object</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">springs</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="n">number_of_masses</span><span class="p">)</span><span class="o">:</span>
+<span class="w">     </span><span class="n">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">starting_position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">single_length</span><span class="p">,</span><span class="w"> </span><span class="n">starting_position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">starting_position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="w">     </span><span class="n">new_mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="n">pos</span><span class="p">))</span><span class="w"> </span><span class="err">#</span><span class="n">adding</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">masses</span>
+<span class="w">     </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">prev_obj</span><span class="p">,</span><span class="w"> </span><span class="n">new_mass</span><span class="p">)))</span>
+<span class="w">     </span><span class="n">prev_obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_mass</span>
+</pre></div>
+</div>
+<img alt="_images/Chain.png" src="_images/Chain.png" />
+<p>Here we see a render of the modeled chain. The chain is fixed at one end.</p>
+</section>
+<section id="crane">
+<h2>Crane<a class="headerlink" href="#crane" title="Link to this heading">#</a></h2>
+<p>This example simulates a flexible crane structure by constructing a truss entirely out of a network of high-stiffness springs and a heavy tip load. It demonstrates an unconstrained elastic system deforming under gravity.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">import</span><span class="w"> </span><span class="n">math</span>
+
+<span class="n">mss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MassSpringSystem3d</span><span class="p">()</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">gravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">-9.81</span><span class="p">)</span>
+
+<span class="cp"># --- Configuration ---</span>
+<span class="n">num_bays</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w">         </span><span class="err">#</span><span class="w"> </span><span class="n">Longer</span><span class="w"> </span><span class="n">arm</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">crane</span>
+<span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">           </span><span class="err">#</span><span class="w"> </span><span class="n">Width</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">boom</span>
+<span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Height</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">boom</span>
+<span class="n">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Length</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">segment</span>
+<span class="n">stiffness</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50000</span><span class="w">     </span><span class="err">#</span><span class="w"> </span><span class="n">Stiffer</span><span class="w"> </span><span class="n">structure</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">hold</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">weight</span>
+
+<span class="n">cable_len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.0</span><span class="w">       </span><span class="err">#</span><span class="w"> </span><span class="n">How</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">cable</span><span class="w"> </span><span class="n">hangs</span><span class="w"> </span><span class="n">down</span>
+<span class="n">load_mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">50.0</span><span class="w">      </span><span class="err">#</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">heavy</span><span class="w"> </span><span class="n">weight</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">end</span>
+
+<span class="cp"># Calculate diagonal length (for bracing)</span>
+<span class="n">diag_len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">length</span><span class="o">**</span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">height</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="cp"># Calculate cable diagonal (distance from top corners to the centered load)</span>
+<span class="n">cable_diag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">cable_len</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="cp"># --- 1. Create the Anchors (The &quot;Tower&quot; Connection) ---</span>
+<span class="cp"># We fix the 4 corners at X=0</span>
+<span class="n">p_bl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Previous</span><span class="w"> </span><span class="n">Bottom</span><span class="o">-</span><span class="n">Left</span>
+<span class="n">p_br</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span><span class="w">      </span><span class="err">#</span><span class="w"> </span><span class="n">Previous</span><span class="w"> </span><span class="n">Bottom</span><span class="o">-</span><span class="n">Right</span>
+<span class="n">p_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)))</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="n">Previous</span><span class="w"> </span><span class="n">Top</span><span class="o">-</span><span class="n">Right</span>
+<span class="n">p_tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)))</span><span class="w">     </span><span class="err">#</span><span class="w"> </span><span class="n">Previous</span><span class="w"> </span><span class="n">Top</span><span class="o">-</span><span class="n">Left</span>
+
+<span class="cp"># --- 2. Build the Jib (The Arm) ---</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="n">num_bays</span><span class="p">)</span><span class="o">:</span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">length</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="cp"># Standard truss segments (Lightweight structure)</span>
+<span class="w">    </span><span class="n">c_bl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Current</span><span class="w"> </span><span class="n">Bottom</span><span class="o">-</span><span class="n">Left</span>
+<span class="w">    </span><span class="n">c_br</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span><span class="w">      </span><span class="err">#</span><span class="w"> </span><span class="n">Current</span><span class="w"> </span><span class="n">Bottom</span><span class="o">-</span><span class="n">Right</span>
+<span class="w">    </span><span class="n">c_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)))</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="n">Current</span><span class="w"> </span><span class="n">Top</span><span class="o">-</span><span class="n">Right</span>
+<span class="w">    </span><span class="n">c_tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)))</span><span class="w">     </span><span class="err">#</span><span class="w"> </span><span class="n">Current</span><span class="w"> </span><span class="n">Top</span><span class="o">-</span><span class="n">Left</span>
+
+<span class="w">    </span><span class="cp"># --- A. Length Springs (The Long Lines) ---</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_bl</span><span class="p">,</span><span class="w"> </span><span class="n">c_bl</span><span class="p">)))</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_br</span><span class="p">,</span><span class="w"> </span><span class="n">c_br</span><span class="p">)))</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_tr</span><span class="p">,</span><span class="w"> </span><span class="n">c_tr</span><span class="p">)))</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_tl</span><span class="p">,</span><span class="w"> </span><span class="n">c_tl</span><span class="p">)))</span>
+
+<span class="w">    </span><span class="cp"># --- B. Square Springs (The Cross Section Ring) ---</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="w">  </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">c_bl</span><span class="p">,</span><span class="w"> </span><span class="n">c_br</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">c_br</span><span class="p">,</span><span class="w"> </span><span class="n">c_tr</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="w">  </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">c_tr</span><span class="p">,</span><span class="w"> </span><span class="n">c_tl</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">c_tl</span><span class="p">,</span><span class="w"> </span><span class="n">c_bl</span><span class="p">)))</span><span class="w"> </span>
+
+<span class="w">    </span><span class="cp"># --- C. Diagonal Springs (The Strength) ---</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">diag_len</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_bl</span><span class="p">,</span><span class="w"> </span><span class="n">c_tl</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">diag_len</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_br</span><span class="p">,</span><span class="w"> </span><span class="n">c_tr</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">diag_len</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_tl</span><span class="p">,</span><span class="w"> </span><span class="n">c_tr</span><span class="p">)))</span><span class="w"> </span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">diag_len</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_bl</span><span class="p">,</span><span class="w"> </span><span class="n">c_br</span><span class="p">)))</span><span class="w"> </span>
+
+<span class="w">    </span><span class="cp"># Update &#39;previous&#39; nodes to be the &#39;current&#39; ones for the next loop</span>
+<span class="w">    </span><span class="n">p_bl</span><span class="p">,</span><span class="w"> </span><span class="n">p_br</span><span class="p">,</span><span class="w"> </span><span class="n">p_tr</span><span class="p">,</span><span class="w"> </span><span class="n">p_tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c_bl</span><span class="p">,</span><span class="w"> </span><span class="n">c_br</span><span class="p">,</span><span class="w"> </span><span class="n">c_tr</span><span class="p">,</span><span class="w"> </span><span class="n">c_tl</span>
+
+<span class="cp"># --- 3. The Crane Mechanism (Cable &amp; Load) ---</span>
+<span class="cp"># At this point, p_tr and p_tl are the nodes at the very tip of the crane (top).</span>
+
+<span class="cp"># Calculate position: End of X, Centered in Y, Hanging down from Top Z</span>
+<span class="n">tip_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">num_bays</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">length</span>
+<span class="n">load_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2.0</span>
+<span class="n">load_z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">cable_len</span>
+
+<span class="cp"># Create the Heavy Load</span>
+<span class="n">load_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="n">load_mass</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">tip_x</span><span class="p">,</span><span class="w"> </span><span class="n">load_y</span><span class="p">,</span><span class="w"> </span><span class="n">load_z</span><span class="p">)))</span>
+
+
+
+<span class="cp"># Connect the Load (The Cable)</span>
+<span class="cp"># We attach the load to the top two corners of the crane tip</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">cable_diag</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_tl</span><span class="p">,</span><span class="w"> </span><span class="n">load_node</span><span class="p">)))</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Spring</span><span class="p">(</span><span class="n">cable_diag</span><span class="p">,</span><span class="w"> </span><span class="n">stiffness</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">p_tr</span><span class="p">,</span><span class="w"> </span><span class="n">load_node</span><span class="p">)))</span>
+</pre></div>
+</div>
+<img alt="_images/Crane.png" src="_images/Crane.png" />
+<p>The ball single mass unit on the bottom right of the crane is the load mass. It has 50 mass units, while the rest of the masses have just one mass unit. The crane, being fixed on the left side, is pulled downwards.</p>
+</section>
+<section id="spinning-top">
+<h2>Spinning Top<a class="headerlink" href="#spinning-top" title="Link to this heading">#</a></h2>
+<p>This example models a rigid spinning top using three mass nodes and a fixed pivot. Distance Constraints are used to enforce the rigid structure and initial velocity defines the spin.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">import</span><span class="w"> </span><span class="n">math</span>
+<span class="k">import</span><span class="w"> </span><span class="n">numpy</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">np</span>
+<span class="n">from</span><span class="w"> </span><span class="n">mass_spring</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="o">*</span>
+<span class="n">from</span><span class="w"> </span><span class="n">pythreejs</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="o">*</span>
+<span class="n">from</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="n">sleep</span>
+<span class="n">from</span><span class="w"> </span><span class="n">IPython</span><span class="p">.</span><span class="n">display</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="n">display</span>
+
+<span class="cp"># --- 1. System Setup ---</span>
+<span class="n">mss</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MassSpringSystem3d</span><span class="p">()</span>
+<span class="n">mss</span><span class="p">.</span><span class="n">gravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">-9.81</span><span class="p">)</span>
+
+<span class="cp"># Parameters</span>
+<span class="n">H</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Height</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">tops</span><span class="w"> </span><span class="n">body</span>
+<span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">          </span><span class="err">#</span><span class="w"> </span><span class="n">Radius</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">top</span>
+<span class="n">omega</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span><span class="w">     </span><span class="err">#</span><span class="w"> </span><span class="n">Angular</span><span class="w"> </span><span class="n">velocity</span><span class="w"> </span><span class="p">(</span><span class="n">rad</span><span class="o">/</span><span class="n">s</span><span class="p">)</span>
+<span class="n">mass_val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w">   </span><span class="err">#</span><span class="w"> </span><span class="n">Mass</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">point</span>
+
+<span class="cp"># --- 2. Add Objects ---</span>
+<span class="cp"># Pivot Point (The tip of the spinning top)</span>
+<span class="cp"># We treat the Pivot as a Fixed Point</span>
+<span class="n">pivot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Fix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span>
+
+<span class="cp"># Create 3 Masses arranged in a triangle at height H</span>
+<span class="cp"># We tilt the top slightly (by shifting X) to encourage precession</span>
+<span class="n">tilt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span>
+<span class="n">mass_nodes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+
+<span class="cp"># Angles for the triangle: 0, 120, 240 degrees</span>
+<span class="n">angles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="o">*</span><span class="n">math</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="k">for</span><span class="w"> </span><span class="n">theta</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">angles</span><span class="o">:</span>
+<span class="w">    </span><span class="cp"># Position (Upright + slight tilt)</span>
+<span class="w">    </span><span class="n">px</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">math</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tilt</span>
+<span class="w">    </span><span class="n">py</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">math</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="w">    </span><span class="n">pz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">H</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="cp"># Add Mass</span>
+<span class="w">    </span><span class="n">m_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Mass</span><span class="p">(</span><span class="n">mass_val</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">px</span><span class="p">,</span><span class="w"> </span><span class="n">py</span><span class="p">,</span><span class="w"> </span><span class="n">pz</span><span class="p">)))</span>
+<span class="w">    </span><span class="n">mass_nodes</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">m_node</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="cp"># --- 3. Set Initial Velocity (Spin around Z-axis) ---</span>
+<span class="w">    </span><span class="cp"># v = omega x r = (-omega * y, omega * x, 0)</span>
+<span class="w">    </span><span class="cp"># We calculate velocity relative to the center of spin (tilt, 0, H)</span>
+<span class="w">    </span><span class="n">rel_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">px</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tilt</span>
+<span class="w">    </span><span class="n">rel_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">py</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">vx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">omega</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rel_y</span>
+<span class="w">    </span><span class="n">vy</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="n">omega</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rel_x</span>
+<span class="w">    </span><span class="n">vz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="cp"># Set velocity (Requires updated C++ bindings!)</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">m_node</span><span class="p">.</span><span class="n">nr</span><span class="p">].</span><span class="n">vel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">vx</span><span class="p">,</span><span class="w"> </span><span class="n">vy</span><span class="p">,</span><span class="w"> </span><span class="n">vz</span><span class="p">]</span>
+
+<span class="cp"># --- 4. Add Constraints (Rigid Body Connection) ---</span>
+<span class="n">ndof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">len</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">)</span>
+
+<span class="cp"># A. Connect masses to Pivot (Tip to Body)</span>
+<span class="k">for</span><span class="w"> </span><span class="n">m_node</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mass_nodes</span><span class="o">:</span>
+<span class="w">    </span><span class="cp"># Calculate distance based on initial positions</span>
+<span class="w">    </span><span class="n">p_pivot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">fixes</span><span class="p">[</span><span class="n">pivot</span><span class="p">.</span><span class="n">nr</span><span class="p">].</span><span class="n">pos</span><span class="p">)</span>
+<span class="w">    </span><span class="n">p_mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">m_node</span><span class="p">.</span><span class="n">nr</span><span class="p">].</span><span class="n">pos</span><span class="p">)</span>
+<span class="w">    </span><span class="n">dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p_mass</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p_pivot</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DistanceConstraint3d</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span><span class="w"> </span><span class="n">pivot</span><span class="p">,</span><span class="w"> </span><span class="n">m_node</span><span class="p">,</span><span class="w"> </span><span class="n">dist</span><span class="p">,</span><span class="w"> </span><span class="n">mss</span><span class="p">)</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+<span class="cp"># B. Connect masses to each other (Rigid Triangle)</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="n">len</span><span class="p">(</span><span class="n">mass_nodes</span><span class="p">))</span><span class="o">:</span>
+<span class="w">    </span><span class="n">node_A</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_nodes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">    </span><span class="n">node_B</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_nodes</span><span class="p">[(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">len</span><span class="p">(</span><span class="n">mass_nodes</span><span class="p">)]</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="n">Wrap</span><span class="w"> </span><span class="n">around</span><span class="w"> </span><span class="p">(</span><span class="mi">0-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1-2</span><span class="p">,</span><span class="w"> </span><span class="mi">2-0</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">p_A</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">node_A</span><span class="p">.</span><span class="n">nr</span><span class="p">].</span><span class="n">pos</span><span class="p">)</span>
+<span class="w">    </span><span class="n">p_B</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">node_B</span><span class="p">.</span><span class="n">nr</span><span class="p">].</span><span class="n">pos</span><span class="p">)</span>
+<span class="w">    </span><span class="n">dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p_A</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p_B</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DistanceConstraint3d</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span><span class="w"> </span><span class="n">node_A</span><span class="p">,</span><span class="w"> </span><span class="n">node_B</span><span class="p">,</span><span class="w"> </span><span class="n">dist</span><span class="p">,</span><span class="w"> </span><span class="n">mss</span><span class="p">)</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">addConstraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+<span class="cp"># --- 5. Visualization ---</span>
+<span class="n">vis_masses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="o">:</span>
+<span class="w">    </span><span class="n">vis_masses</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Mesh</span><span class="p">(</span><span class="n">SphereBufferGeometry</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">),</span>
+<span class="w">             </span><span class="n">MeshStandardMaterial</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">red</span><span class="err">&#39;</span><span class="p">),</span>
+<span class="w">             </span><span class="n">position</span><span class="o">=</span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">))</span>
+
+<span class="n">vis_fixes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="k">for</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">fixes</span><span class="o">:</span>
+<span class="w">    </span><span class="n">vis_fixes</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Mesh</span><span class="p">(</span><span class="n">SphereBufferGeometry</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">),</span>
+<span class="w">             </span><span class="n">MeshStandardMaterial</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">blue</span><span class="err">&#39;</span><span class="p">),</span>
+<span class="w">             </span><span class="n">position</span><span class="o">=</span><span class="n">f</span><span class="p">.</span><span class="n">pos</span><span class="p">))</span>
+
+<span class="cp"># Visualization Lines</span>
+<span class="cp"># We draw lines from Pivot to Mass and Mass to Mass</span>
+<span class="n">line_pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="cp"># Pivot to Mass</span>
+<span class="n">p_fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">fixes</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pos</span>
+<span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="o">:</span>
+<span class="w">    </span><span class="n">line_pos</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">p_fix</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">])</span>
+<span class="cp"># Mass to Mass</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="n">len</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">))</span><span class="o">:</span>
+<span class="w">    </span><span class="n">pA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">pos</span>
+<span class="w">    </span><span class="n">pB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">].</span><span class="n">pos</span>
+<span class="w">    </span><span class="n">line_pos</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">pA</span><span class="p">,</span><span class="w"> </span><span class="n">pB</span><span class="p">])</span>
+
+<span class="n">constraint_lines</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineSegments2</span><span class="p">(</span>
+<span class="w">    </span><span class="n">LineSegmentsGeometry</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">line_pos</span><span class="p">),</span>
+<span class="w">    </span><span class="n">LineMaterial</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">black</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="cp"># Scene Setup</span>
+<span class="n">view_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">600</span>
+<span class="n">view_height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">400</span>
+<span class="n">camera</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PerspectiveCamera</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-5</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">up</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">aspect</span><span class="o">=</span><span class="n">view_width</span><span class="o">/</span><span class="n">view_height</span><span class="p">)</span>
+<span class="n">camera</span><span class="p">.</span><span class="n">lookAt</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">H</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span>
+
+<span class="n">key_light</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DirectionalLight</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">])</span>
+<span class="n">ambient_light</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AmbientLight</span><span class="p">(</span><span class="n">intensity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">scene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Scene</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">vis_masses</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">vis_fixes</span><span class="p">,</span><span class="w"> </span><span class="n">constraint_lines</span><span class="p">,</span><span class="w"> </span><span class="n">camera</span><span class="p">,</span><span class="w"> </span><span class="n">key_light</span><span class="p">,</span><span class="w"> </span><span class="n">ambient_light</span><span class="p">])</span>
+<span class="n">controller</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OrbitControls</span><span class="p">(</span><span class="n">controlling</span><span class="o">=</span><span class="n">camera</span><span class="p">)</span>
+<span class="n">renderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Renderer</span><span class="p">(</span><span class="n">camera</span><span class="o">=</span><span class="n">camera</span><span class="p">,</span><span class="w"> </span><span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span><span class="w"> </span><span class="n">controls</span><span class="o">=</span><span class="p">[</span><span class="n">controller</span><span class="p">],</span><span class="w"> </span>
+<span class="w">                    </span><span class="n">width</span><span class="o">=</span><span class="n">view_width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="o">=</span><span class="n">view_height</span><span class="p">)</span>
+
+<span class="n">display</span><span class="p">(</span><span class="n">renderer</span><span class="p">)</span>
+
+<span class="cp"># --- 6. Simulation Loop ---</span>
+<span class="n">dt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.01</span>
+<span class="n">steps_per_frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span>
+
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="o">:</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span><span class="w"> </span><span class="n">steps_per_frame</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="cp"># Update Visualization Positions</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">mvis</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">zip</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">,</span><span class="w"> </span><span class="n">vis_masses</span><span class="p">)</span><span class="o">:</span>
+<span class="w">        </span><span class="n">mvis</span><span class="p">.</span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="w">        </span>
+<span class="w">    </span><span class="cp"># Update Lines</span>
+<span class="w">    </span><span class="n">p_fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">fixes</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pos</span>
+<span class="w">    </span><span class="n">new_segments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">    </span><span class="cp"># Pivot to Masses</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="o">:</span>
+<span class="w">        </span><span class="n">new_segments</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">p_fix</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">])</span>
+<span class="w">    </span><span class="cp"># Mass to Mass</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="n">len</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">))</span><span class="o">:</span>
+<span class="w">        </span><span class="n">pA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[</span><span class="n">k</span><span class="p">].</span><span class="n">pos</span>
+<span class="w">        </span><span class="n">pB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">[(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">].</span><span class="n">pos</span>
+<span class="w">        </span><span class="n">new_segments</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">pA</span><span class="p">,</span><span class="w"> </span><span class="n">pB</span><span class="p">])</span>
+<span class="w">        </span>
+<span class="w">    </span><span class="n">constraint_lines</span><span class="p">.</span><span class="n">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineSegmentsGeometry</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">new_segments</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/Kreisel.png" src="_images/Kreisel.png" />
+<p>Here we see a render of the spinning top, with it’s 3 spinning masses.</p>
+</section>
+<section id="setup-visualization-objects">
+<h2>Setup Visualization Objects<a class="headerlink" href="#setup-visualization-objects" title="Link to this heading">#</a></h2>
+<p>We create <code class="docutils literal notranslate"><span class="pre">pythreejs</span></code> meshes for every mass, fix, and spring currently in the <code class="docutils literal notranslate"><span class="pre">mss</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">masses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="o">:</span>
+<span class="w">    </span><span class="n">masses</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Mesh</span><span class="p">(</span><span class="n">SphereBufferGeometry</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">),</span>
+<span class="w">             </span><span class="n">MeshStandardMaterial</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">red</span><span class="err">&#39;</span><span class="p">),</span>
+<span class="w">             </span><span class="n">position</span><span class="o">=</span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">))</span><span class="w"> </span>
+
+<span class="n">fixes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="k">for</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">fixes</span><span class="o">:</span>
+<span class="w">    </span><span class="n">fixes</span><span class="p">.</span><span class="n">append</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Mesh</span><span class="p">(</span><span class="n">SphereBufferGeometry</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">),</span>
+<span class="w">             </span><span class="n">MeshStandardMaterial</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">blue</span><span class="err">&#39;</span><span class="p">),</span>
+<span class="w">             </span><span class="n">position</span><span class="o">=</span><span class="n">f</span><span class="p">.</span><span class="n">pos</span><span class="p">))</span><span class="w"> </span>
+
+<span class="n">springpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">springs</span><span class="o">:</span>
+<span class="w">    </span><span class="n">pA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">[</span><span class="n">s</span><span class="p">.</span><span class="n">connectors</span><span class="p">[</span><span class="mi">0</span><span class="p">]].</span><span class="n">pos</span>
+<span class="w">    </span><span class="n">pB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">[</span><span class="n">s</span><span class="p">.</span><span class="n">connectors</span><span class="p">[</span><span class="mi">1</span><span class="p">]].</span><span class="n">pos</span>
+<span class="w">    </span><span class="n">springpos</span><span class="p">.</span><span class="n">append</span><span class="w"> </span><span class="p">([</span><span class="w"> </span><span class="n">pA</span><span class="p">,</span><span class="w"> </span><span class="n">pB</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span><span class="w"> </span>
+
+<span class="n">springgeo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineSegmentsGeometry</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">springpos</span><span class="p">)</span>
+<span class="n">m2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineMaterial</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="o">=</span><span class="err">&#39;</span><span class="n">cyan</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">springs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineSegments2</span><span class="p">(</span><span class="n">springgeo</span><span class="p">,</span><span class="w"> </span><span class="n">m2</span><span class="p">)</span><span class="w">    </span>
+
+<span class="n">axes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AxesHelper</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">view_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">800</span>
+<span class="n">view_height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">400</span>
+
+<span class="n">camera</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PerspectiveCamera</span><span class="p">(</span><span class="w"> </span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-5</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">aspect</span><span class="o">=</span><span class="n">view_width</span><span class="o">/</span><span class="n">view_height</span><span class="p">)</span>
+<span class="n">key_light</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DirectionalLight</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">])</span>
+<span class="n">ambient_light</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AmbientLight</span><span class="p">()</span>
+
+<span class="n">scene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Scene</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">masses</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">fixes</span><span class="p">,</span><span class="w"> </span><span class="n">springs</span><span class="p">,</span><span class="w"> </span><span class="n">axes</span><span class="p">,</span><span class="w"> </span><span class="n">camera</span><span class="p">,</span><span class="w"> </span><span class="n">key_light</span><span class="p">,</span><span class="w"> </span><span class="n">ambient_light</span><span class="p">])</span>
+<span class="n">controller</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OrbitControls</span><span class="p">(</span><span class="n">controlling</span><span class="o">=</span><span class="n">camera</span><span class="p">)</span>
+<span class="n">renderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Renderer</span><span class="p">(</span><span class="n">camera</span><span class="o">=</span><span class="n">camera</span><span class="p">,</span><span class="w"> </span><span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span><span class="w"> </span><span class="n">controls</span><span class="o">=</span><span class="p">[</span><span class="n">controller</span><span class="p">],</span>
+<span class="w">                    </span><span class="n">width</span><span class="o">=</span><span class="n">view_width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="o">=</span><span class="n">view_height</span><span class="p">)</span>
+
+<span class="n">renderer</span>
+</pre></div>
+</div>
+</section>
+<section id="the-simulation-loop">
+<h2>The Simulation Loop<a class="headerlink" href="#the-simulation-loop" title="Link to this heading">#</a></h2>
+<p>This loop steps the physics forward and updates the graphics.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">from</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="n">sleep</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">range</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span><span class="o">:</span>
+<span class="w">    </span><span class="n">mss</span><span class="p">.</span><span class="n">simulate</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="n">mvis</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">zip</span><span class="p">(</span><span class="n">mss</span><span class="p">.</span><span class="n">masses</span><span class="p">,</span><span class="w"> </span><span class="n">masses</span><span class="p">)</span><span class="o">:</span>
+<span class="w">        </span><span class="n">mvis</span><span class="p">.</span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="w">    </span><span class="n">springpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mss</span><span class="p">.</span><span class="n">springs</span><span class="o">:</span>
+<span class="w">        </span><span class="n">pA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">[</span><span class="n">s</span><span class="p">.</span><span class="n">connectors</span><span class="p">[</span><span class="mi">0</span><span class="p">]].</span><span class="n">pos</span>
+<span class="w">        </span><span class="n">pB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mss</span><span class="p">[</span><span class="n">s</span><span class="p">.</span><span class="n">connectors</span><span class="p">[</span><span class="mi">1</span><span class="p">]].</span><span class="n">pos</span>
+<span class="w">        </span><span class="n">springpos</span><span class="p">.</span><span class="n">append</span><span class="w"> </span><span class="p">([</span><span class="w"> </span><span class="n">pA</span><span class="p">,</span><span class="w"> </span><span class="n">pB</span><span class="w"> </span><span class="p">])</span><span class="w"> </span>
+<span class="w">    </span><span class="n">springs</span><span class="p">.</span><span class="n">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LineSegmentsGeometry</span><span class="p">(</span><span class="n">positions</span><span class="o">=</span><span class="n">springpos</span><span class="p">)</span>
+<span class="w">    </span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 
     <script type="text/x-thebe-config">
     {
@@ -1388,6 +2017,47 @@ Both methods are computationally more expensive than the Explicit Methods due to
 </li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#exercise-20-4-1-mass-spring-system">Exercise 20.4.1 Mass-spring system</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#original-mathematical-model">1. Original Mathematical Model</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#system-state">System State</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forces">Forces</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gravity">Gravity</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-forces">Spring Forces</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equations-of-motion-unconstrained">Equations of Motion (Unconstrained)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-constraints">2. Adding Constraints</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modified-newton-equation">1. Modified Newton Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-equation">2. Constraint Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-distance-constraint">Example: Distance Constraint</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saddle-point-system">3. Saddle-Point System</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#analytic-derivative-of-acceleration">2. Analytic Derivative of Acceleration</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-original-kkt-system">2.1 Solving the Original KKT System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-differentiated-system">2.2 Solving the Differentiated System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components-of-rhs-matrix">2.3 Components of RHS_matrix</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spring-stiffness-k-spring">Spring stiffness (K_spring)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-force-derivatives-h-lambda">Constraint force derivatives (<span class="math notranslate nohighlight">\(H_{\lambda}\)</span>):</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-jacobian-derivatives">Constraint Jacobian derivatives</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#unconstrained-case">2.4 Unconstrained Case</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#double-pendulum">Double Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chain-pendulum">Chain Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crane">Crane</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spinning-top">Spinning Top</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-visualization-objects">Setup Visualization Objects</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-simulation-loop">The Simulation Loop</a></li>
 </ul>
 </li>
 </ul>
