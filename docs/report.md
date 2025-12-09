@@ -1179,7 +1179,7 @@ mss.add(Spring(1, 100000, (mA, mB)))
 ```
 
 <video width="600" controls>
-  <source src="../results/mechsystem_results/double_pendulum.mp4" type="video/mp4">
+  <source src="mech/double_pendulum.mp4" type="video/mp4">
 </video>
 
 
@@ -1206,7 +1206,7 @@ mss.addConstraint(DistanceConstraint3d(ndof, m1, m2, 1.0, mss))
 ```
 
 <video width="600" controls>
-  <source src="../results/mechsystem_results/double_pendulum_constrained.mp4" type="video/mp4">
+  <source src="mech/double_pendulum_constrained.mp4" type="video/mp4">
 </video>
 
  The **difference in numerical stability and oscillation behavior between both formulations can be clearly observed in the provided Python notebook**.
@@ -1239,7 +1239,7 @@ for i in range(number_of_masses):
 ```
 
 <video width="600" controls>
-  <source src="../results/mechsystem_results/chain.mp4" type="video/mp4">
+  <source src="mech/chain.mp4" type="video/mp4">
 </video>
 
 
@@ -1308,7 +1308,7 @@ mss.add(Spring(cable_diag, stiffness, (p_tr, load_node)))
 ```
 
 <video width="600" controls>
-  <source src="../results/mechsystem_results/crane.mp4" type="video/mp4">
+  <source src="mech/crane.mp4" type="video/mp4">
 </video>
 
 The single mass at the lower right represents the load with a mass of 50 units, while all other masses have unit mass. The crane is fixed on the left side and bends under the applied gravitational load.
@@ -1363,7 +1363,7 @@ for i in range(len(mass_nodes)):
 ```
 
 <video width="600" controls>
-  <source src="../results/mechsystem_results/spinning_top.mp4" type="video/mp4">
+  <source src="mech/spinning_top.mp4" type="video/mp4">
 </video>
 
 The three rotating masses form a rigid triangular structure connected to the pivot by distance constraints. The initial angular velocity defines the spin of the top, and the constraints ensure that the geometric structure remains rigid throughout the simulation.
